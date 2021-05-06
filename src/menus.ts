@@ -12,16 +12,12 @@ const err = (name: string) => () => {
     throw new Error(`MenuAction not implemented: ${name}`);
 };
 export interface MenuActions {
-    // Your menu action definitions here
-    // `toggleHighlight` is an example that will flip a boolean
-    // `isHighlighted` on the RootEntity.
-    toggleHighlight: () => void;
 }
 export const menuActions: MenuActions = {
     // Set the default implementation of menu actions here.
     // At runtime this `err` implementation should be replaced
     // by the constructor of the Main component
-    toggleHighlight: err("toggle-highlight"),
+    // toggleHighlight: err("toggle-highlight"),
 };
 
 export class Menu {
@@ -56,11 +52,11 @@ export class Menu {
      * within the `updateToolbar` method in this class.
      */
     private readonly allCommands_: MenuCommand[] = [
-        {
-            id: "toggle-highlight",
-            label: "Toggle Highlight",
-            handler: () => menuActions.toggleHighlight(),
-        },
+        // {
+        //     id: "toggle-highlight",
+        //     label: "Toggle Highlight",
+        //     handler: () => menuActions.toggleHighlight(),
+        // },
     ];
 
     private getToolbarCommandIds_(data: AppData): string[] {
@@ -74,10 +70,7 @@ export class Menu {
     }
 
     private getHighlightedCommandIds_(data: AppData): string[] {
-        const {isHighlighted} = data;
-        const highlightedCommandIds: string[] = isHighlighted
-            ? ["toggle-highlight"]
-            : [];
+        const highlightedCommandIds: string[] = [];
         return highlightedCommandIds;
     }
 

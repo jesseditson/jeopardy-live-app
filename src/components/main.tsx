@@ -1,4 +1,5 @@
 import React, {Component} from "react";
+import quip from "quip-apps-api";
 import {menuActions, Menu} from "../menus";
 import {AppData, RootEntity} from "../model/root";
 
@@ -14,8 +15,6 @@ interface MainState {
 }
 export default class Main extends Component<MainProps, MainState> {
     setupMenuActions_(rootRecord: RootEntity) {
-        menuActions.toggleHighlight = () =>
-            rootRecord.getActions().onToggleHighlight();
     }
 
     constructor(props: MainProps) {
@@ -54,14 +53,22 @@ export default class Main extends Component<MainProps, MainState> {
     };
 
     render() {
+        const viewingUser = quip.apps.getViewingUser()
         const {data} = this.state;
-        const {isHighlighted} = data;
+        const {topics, ownerId} = data;
         return (
-            <div className={"root"}>
-                <div className={isHighlighted ? "highlight" : undefined}>
-                    <h1>Hello, World!</h1>
-                    <p>App Data:</p>
-                    <pre>{JSON.stringify(data)}</pre>
+            <div className="root">
+                <div className="topics">
+                    <div className="topic-names">
+                        {topics.map(t => <h2>{t.name}</h2>)}
+                        {viewingUser?.id() === ownerId ? <div className="add-topic">Add Topic</div> : null}
+                    </div>
+                    <div className="questions">
+                        {topics.map(t => t.questions.map(q => <div className="question">
+                            {q.question}
+                            {viewingUser?.id() === ownerId ? <div className="add-question">Add Question</div> : null}
+                        </div>))}
+                    </div>
                 </div>
             </div>
         );
