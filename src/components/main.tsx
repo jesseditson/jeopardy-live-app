@@ -12,9 +12,21 @@ interface MainProps {
 
 interface MainState {
     data: AppData;
+    showingLeaderboard: boolean;
+    showingPreferences: boolean;
 }
+
 export default class Main extends Component<MainProps, MainState> {
     setupMenuActions_(rootRecord: RootEntity) {
+        menuActions.showLeaderboard = () => {
+            this.setState({showingLeaderboard: true});
+        }
+        menuActions.showPreferences = () => {
+            this.setState({showingPreferences: true});
+        }
+        menuActions.togglePlayMode = () => {
+            rootRecord.togglePlayMode();
+        }
     }
 
     constructor(props: MainProps) {
@@ -22,7 +34,7 @@ export default class Main extends Component<MainProps, MainState> {
         const {rootRecord} = props;
         this.setupMenuActions_(rootRecord);
         const data = rootRecord.getData();
-        this.state = {data};
+        this.state = {data, showingLeaderboard: false, showingPreferences: false};
     }
 
     componentDidMount() {
@@ -52,22 +64,49 @@ export default class Main extends Component<MainProps, MainState> {
         this.setState({data: rootRecord.getData()});
     };
 
+    private addTopic = () => {
+        const {rootRecord} = this.props;
+        const {addTopic} = rootRecord.getActions();
+        addTopic("New Topic");
+    }
+
+    private addQuestion = (topicId: string) => {
+    const {rootRecord} = this.props;
+        const {addQuestion} = rootRecord.getActions();
+        addQuestion(topicId, "New Question");
+    }
+
+    private changeTopicName = (topicId: string, name: string) => {
+        const {rootRecord} = this.props;
+        const {setTopicName} = rootRecord.getActions();
+        setTopicName(topicId, name)
+    }
+    private changeQuestion = (questionId: string, question: string) => {
+        const {rootRecord} = this.props;
+        const {setQuestion} = rootRecord.getActions();
+        setQuestion(questionId, question)
+    }
+
     render() {
-        const viewingUser = quip.apps.getViewingUser()
         const {data} = this.state;
-        const {topics, ownerId} = data;
+        const {topics, isOwner} = data;
+        const gridStyles = {
+            gridTemplateColumns: (isOwner ? ["1fr"] : []).concat(topics.map(t => "1fr")).join(" ")
+        }
         return (
             <div className="root">
                 <div className="topics">
-                    <div className="topic-names">
-                        {topics.map(t => <h2>{t.name}</h2>)}
-                        {viewingUser?.id() === ownerId ? <div className="add-topic">Add Topic</div> : null}
+                    <div className="topic-names" style={gridStyles}>
+                        {topics.map(t => isOwner ? <input onChange={(e) => this.changeTopicName(t.uuid, e.target.value)} value={t.name}/> : <h2>t.name</h2>)}
+                        {isOwner ? <div className="add-topic" onClick={this.addTopic}>+ Add Topic</div> : null}
                     </div>
-                    <div className="questions">
-                        {topics.map(t => t.questions.map(q => <div className="question">
-                            {q.question}
-                            {viewingUser?.id() === ownerId ? <div className="add-question">Add Question</div> : null}
-                        </div>))}
+                    <div className="questions" style={gridStyles}>
+                        {topics.map(t => <>
+                            {t.questions.map(q => <div className="question">
+                            {topics.map(t => isOwner ? <input onChange={(e) => this.changeQuestion(q.uuid, e.target.value)} value={q.question}/> : <h2>q.question</h2>)}
+                            </div>)}
+                            {isOwner ? <div className="add-question" onClick={() => this.addQuestion(t.uuid)}>+ Add Question</div> : null}
+                        </>)}
                     </div>
                 </div>
             </div>

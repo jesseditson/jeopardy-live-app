@@ -2,7 +2,6 @@ import quip from "quip-apps-api";
 
 export interface QuestionData {
     uuid: string;
-    value?: number;
     question?: string;
     answers: Map<string, string>;
     correctUserIds: Set<string>;
@@ -13,7 +12,6 @@ export class Question extends quip.apps.Record {
 
     static getProperties() {
         return {
-            value: "number",
             question: "string",
             answers: "object",
             correctUserIds: "array"
@@ -27,6 +25,8 @@ export class Question extends quip.apps.Record {
         };
     }
 
+    setQuestion = (question: string) => this.set("question", question);
+
     addAnswer(userId: string, answer: string) {
         const answers = this.get("answers");
         if (answers[userId]) {
@@ -34,10 +34,6 @@ export class Question extends quip.apps.Record {
         }
         answers[userId] = answer;
         this.set("answers", answers);
-    }
-
-    setValue(value: number) {
-        this.set("value", value);
     }
 
     getData(): QuestionData {
@@ -49,7 +45,6 @@ export class Question extends quip.apps.Record {
         const correctUserIds: Set<string> = new Set(this.get("correctUserIds"));
         return {
             uuid: this.getId(),
-            value: this.get("value") as number | undefined,
             question: this.get("question") as string | undefined,
             answers,
             correctUserIds

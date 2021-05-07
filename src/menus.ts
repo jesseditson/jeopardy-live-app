@@ -12,12 +12,17 @@ const err = (name: string) => () => {
     throw new Error(`MenuAction not implemented: ${name}`);
 };
 export interface MenuActions {
+    showLeaderboard: () => void,
+    togglePlayMode: () => void,
+    showPreferences: () => void,
 }
 export const menuActions: MenuActions = {
     // Set the default implementation of menu actions here.
     // At runtime this `err` implementation should be replaced
     // by the constructor of the Main component
-    // toggleHighlight: err("toggle-highlight"),
+    showLeaderboard: err("showLeaderboard"),
+    togglePlayMode: err("togglePlayMode"),
+    showPreferences: err("showPreferences"),
 };
 
 export class Menu {
@@ -28,15 +33,19 @@ export class Menu {
      */
     updateToolbar(data: AppData) {
         const subCommands: string[] = this.getMainMenuSubCommandIds_(data);
-        const menuCommands: MenuCommand[] = subCommands.length
-            ? [
-                  {
-                      id: quip.apps.DocumentMenuCommands.MENU_MAIN,
-                      subCommands,
-                  },
-                  ...this.allCommands_,
-              ]
-            : this.allCommands_;
+        const commands = this.allCommands_.map(command => {
+            if (command.id === "togglePlayMode") {
+                command.label = data.isPlaying ? "Edit" : "Play";
+            }
+            return command
+        })
+        const menuCommands: MenuCommand[] = subCommands.length ? [
+            {
+                id: quip.apps.DocumentMenuCommands.MENU_MAIN,
+                subCommands,
+            },
+            ...commands,
+        ] : commands;
 
         quip.apps.updateToolbar({
             toolbarCommandIds: this.getToolbarCommandIds_(data),
@@ -52,15 +61,39 @@ export class Menu {
      * within the `updateToolbar` method in this class.
      */
     private readonly allCommands_: MenuCommand[] = [
-        // {
-        //     id: "toggle-highlight",
-        //     label: "Toggle Highlight",
-        //     handler: () => menuActions.toggleHighlight(),
-        // },
+        {
+            id: "showLeaderboard",
+            label: "Show Leaderboard",
+            handler: () => {
+                menuActions.showLeaderboard();
+                return true;
+            },
+        },
+        {
+            id: "togglePlayMode",
+            label: "Play",
+            handler: () => {
+                menuActions.togglePlayMode();
+                return true;
+            },
+        },
+        {
+            id: "showPreferences",
+            label: "Preferences...",
+            handler: () => {
+                menuActions.showPreferences();
+                return true;
+            },
+        },
     ];
 
     private getToolbarCommandIds_(data: AppData): string[] {
-        const toolbarCommandIds_: string[] = ["toggle-highlight"];
+        const toolbarCommandIds_: string[] = data.isOwner ? ["togglePlayMode", quip.apps.DocumentMenuCommands.SEPARATOR] : [];
+        if (data.isPlaying) {
+            toolbarCommandIds_.push("showLeaderboard");
+        } else if (data.isOwner) {
+            toolbarCommandIds_.push("showPreferences");
+        }
         return toolbarCommandIds_;
     }
 

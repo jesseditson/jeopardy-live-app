@@ -3,8 +3,33 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
+    width: 100%;
 }
 
-.root .highlight {
-    background-color: aquamarine;
+.topics {
+    width: 100%;
+    background-color: #324ca8;
+}
+.topic-names > *, .questions > * {
+    color: #fff;
+    font-weight: 800;
+    padding: 20px;
+    font-size: 20px;
+    text-align: center;
+}
+.questions > * {
+    color: #ffe100;
+}
+.topics input:not([type=checkbox]):not([type=radio]) {
+    border: none;
+}
+.topics h2 {
+    border-right: 1px solid #ffe100;
+}
+.topic-names, .questions {
+    display: grid;
+}
+
+.add-topic, .add-question {
+    cursor: pointer;
 }

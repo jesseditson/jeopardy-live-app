@@ -4,8 +4,12 @@ import ReactDOM from "react-dom";
 import Main from "./components/main";
 import {Menu} from "./menus";
 import {RootEntity} from "./model/root";
+import {Topic} from "./model/topic";
+import {Question} from "./model/question";
 
 quip.apps.registerClass(RootEntity, RootEntity.ID);
+quip.apps.registerClass(Topic, Topic.ID);
+quip.apps.registerClass(Question, Question.ID);
 
 const menu = new Menu();
 

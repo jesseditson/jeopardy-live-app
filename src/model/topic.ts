@@ -24,6 +24,7 @@ export class Topic extends quip.apps.Record {
     }
 
     getQuestions = () => this.get("questions") as quip.apps.RecordList<Question>
+    setName = (name: string) => this.set("name", name)
 
     initialize() {
         const listenToQuestions = () => {
@@ -38,9 +39,9 @@ export class Topic extends quip.apps.Record {
         })
     }
 
-    addQuestion(text: string, value: number) {
+    addQuestion(text: string) {
         const questions = this.getQuestions();
-        questions.add({question: text, value});
+        questions.add({question: text});
     }
 
     getData(): TopicData {
