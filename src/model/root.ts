@@ -1,4 +1,5 @@
 import quip from "quip-apps-api";
+import { GamePreferences } from "../components/edit-game-prefs";
 import { Question, QuestionData } from "./question";
 import { Topic, TopicData } from "./topic";
 
@@ -131,6 +132,12 @@ export class RootEntity extends quip.apps.RootRecord {
                     return;
                 }
                 question.setQuestion(text);
+            },
+            updatePreferences: (preferences: GamePreferences) => {
+                const {baseValue, valueIncrement, questionDuration} = preferences;
+                this.set("baseValue", baseValue);
+                this.set("valueIncrement", valueIncrement);
+                this.set("questionDuration", questionDuration);
             },
             setShowingQuestion: (questionId?: string) => {
                 this.set("questionStart", undefined);

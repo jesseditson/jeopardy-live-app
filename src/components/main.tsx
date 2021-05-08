@@ -1,9 +1,12 @@
-import React, {Component} from "react";
+import React, {Component, FunctionComponent, ReactNode} from "react";
 import quip from "quip-apps-api";
+import { CSSTransition } from 'react-transition-group';
 import {menuActions, Menu} from "../menus";
 import {AppData, RootEntity} from "../model/root";
 import { QuestionData } from "../model/question";
 import { TopicData } from "../model/topic";
+import Modal from "./modal";
+import EditGamePrefs, { GamePreferences } from "./edit-game-prefs";
 
 interface MainProps {
     rootRecord: RootEntity;
@@ -17,6 +20,17 @@ interface MainState {
     showingLeaderboard: boolean;
     showingPreferences: boolean;
 }
+
+type QuestionRow = ({q?: QuestionData, t: TopicData, add?: boolean})[]
+
+const Fade: FunctionComponent<{in: boolean}> = (props) => 
+    <CSSTransition
+        mountOnEnter={true}
+        in={props.in}
+        timeout={300}
+        classNames="fade"
+        unmountOnExit
+    >{props.children}</CSSTransition>
 
 export default class Main extends Component<MainProps, MainState> {
     setupMenuActions_(rootRecord: RootEntity) {
@@ -98,9 +112,20 @@ export default class Main extends Component<MainProps, MainState> {
         removeTopic(topicId)
     }
 
+    private updatePreferences = (preferences: GamePreferences) => {
+        const {rootRecord} = this.props;
+        const {updatePreferences} = rootRecord.getActions();
+        updatePreferences(preferences)
+        this.closeModal()
+    }
+
+    private closeModal = () => {
+        this.setState({showingPreferences: false, showingLeaderboard: false})
+    }
+
     // Returns a matrix of questions
-    private getQuestions = (topics: TopicData[]) => {
-        const questions: ({q?: QuestionData, t: TopicData, add?: boolean})[][] = []
+    private getQuestions = (topics: TopicData[]): QuestionRow[] => {
+        const questions: QuestionRow[] = []
         const maxQuestions: Map<number, number> = new Map()
         topics.forEach((topic, tnum) => {
             maxQuestions.set(tnum, 0)
@@ -118,9 +143,42 @@ export default class Main extends Component<MainProps, MainState> {
         return questions
     }
 
-    render() {
+    renderQuestions = (row: QuestionRow, rowIdx: number) => {
         const {data} = this.state;
-        const {topics, isOwner, isPlaying, baseValue, valueIncrement} = data;
+        const {isOwner, isPlaying, baseValue, valueIncrement} = data;
+
+        const elements = []
+        for (let i = 0; i < row.length; i++) {
+            const d = row[i];
+            if (!d) {
+                elements.push(<div className="question empty"/>);
+            } else if (d.add) {
+                elements.push(<div className="question">
+                    <h2 className="add-question" onClick={() => this.addQuestion(d.t.uuid)}>+ Add Question</h2>
+                </div>)
+            } else if (isOwner) {
+                elements.push(!isPlaying
+                    ? <div className="question">
+                        <span>${baseValue + (rowIdx * valueIncrement)}</span>
+                        <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
+                        <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
+                    </div>
+                    : <div className="question">
+                        <span>${baseValue + (rowIdx * valueIncrement)}</span>
+                        <h2>{d.q!.question}</h2>
+                    </div>)
+            } else {
+                elements.push(
+                    <div className="question"><h2>${baseValue + (rowIdx * valueIncrement)}</h2></div>
+                )
+            }
+        }
+        return elements
+    }
+
+    render() {
+        const {data, showingPreferences} = this.state;
+        const {topics, isOwner, baseValue, valueIncrement, questionDuration} = data;
         const gridStyles = {
             gridTemplateColumns: topics.map(t => "1fr").join(" ")
         }
@@ -138,37 +196,14 @@ export default class Main extends Component<MainProps, MainState> {
                         </div>)}
                     </div>
                     <div className="questions" style={gridStyles}>
-                        {this.getQuestions(topics).map(row => {
-                            const elements = []
-                            for (let i = 0; i < row.length; i++) {
-                                const d = row[i];
-                                if (!d) {
-                                    elements.push(<div className="question empty"/>);
-                                } else if (d.add) {
-                                    elements.push(<div className="question">
-                                        <h2 className="add-question" onClick={() => this.addQuestion(d.t.uuid)}>+ Add Question</h2>
-                                    </div>)
-                                } else if (isOwner) {
-                                    elements.push(!isPlaying
-                                        ? <div className="question">
-                                            <span>${baseValue + (i * valueIncrement)}</span>
-                                            <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
-                                            <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
-                                        </div>
-                                        : <div className="question">
-                                            <span>${baseValue + (i * valueIncrement)}</span>
-                                            <h2>{d.q!.question}</h2>
-                                        </div>)
-                                } else {
-                                    elements.push(
-                                        <div className="question"><h2>${baseValue + (i * valueIncrement)}</h2></div>
-                                    )
-                                }
-                            }
-                            return elements
-                        })}
+                        {this.getQuestions(topics).map(this.renderQuestions)}
                     </div>
                 </div>
+                {<Fade in={showingPreferences}>
+                    <Modal showing={showingPreferences} title="Game Preferences" onClose={this.closeModal}>
+                        <EditGamePrefs preferences={{baseValue, valueIncrement, questionDuration}} onSetPreferences={this.updatePreferences}/>
+                    </Modal>
+                </Fade>}
             </div>
         );
     }
