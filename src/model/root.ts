@@ -12,6 +12,7 @@ export interface AppData {
     questionDuration: number,
     showingQuestion?: QuestionData,
     questionStart?: number,
+    finishedQuestions: Set<string>
 }
 
 export class RootEntity extends quip.apps.RootRecord {
@@ -26,7 +27,8 @@ export class RootEntity extends quip.apps.RootRecord {
             questionDuration: "number",
             valueIncrement: "number",
             showingQuestion: "object",
-            questionStart: "number"
+            questionStart: "number",
+            finishedQuestions: "array",
         };
     }
 
@@ -42,6 +44,7 @@ export class RootEntity extends quip.apps.RootRecord {
             valueIncrement: 100,
             questionDuration: 30 * 1000, // 30 seconds
             isPlaying: false,
+            finishedQuestions: []
         };
     }
 
@@ -82,6 +85,7 @@ export class RootEntity extends quip.apps.RootRecord {
             questionStart: this.get("questionStart"),
             showingQuestion: this.get("showingQuestion"),
             topics,
+            finishedQuestions: new Set(this.get("finishedQuestions"))
         };
     }
 
@@ -149,6 +153,9 @@ export class RootEntity extends quip.apps.RootRecord {
                 if (!question) {
                     return;
                 }
+                const finishedQuestions = this.get("finishedQuestions");
+                finishedQuestions.push(questionId);
+                this.set("finishedQuestions", finishedQuestions);
                 this.set("questionStart", new Date().getTime());
                 this.set("showingQuestion", question.getData());
             }

@@ -1,5 +1,6 @@
 import React, {Component, FunctionComponent, ReactNode} from "react";
 import quip from "quip-apps-api";
+import classNames from "classnames";
 import { CSSTransition } from 'react-transition-group';
 import {menuActions, Menu} from "../menus";
 import {AppData, RootEntity} from "../model/root";
@@ -7,6 +8,7 @@ import { QuestionData } from "../model/question";
 import { TopicData } from "../model/topic";
 import Modal from "./modal";
 import EditGamePrefs, { GamePreferences } from "./edit-game-prefs";
+import Leaderboard from "./leaderboard";
 
 interface MainProps {
     rootRecord: RootEntity;
@@ -131,6 +133,8 @@ export default class Main extends Component<MainProps, MainState> {
 
     // Returns a matrix of questions
     private getQuestions = (topics: TopicData[]): QuestionRow[] => {
+        const {data} = this.state;
+        const {isOwner, isPlaying} = data;
         const questions: QuestionRow[] = []
         const maxQuestions: Map<number, number> = new Map()
         topics.forEach((topic, tnum) => {
@@ -141,17 +145,19 @@ export default class Main extends Component<MainProps, MainState> {
                 maxQuestions.set(tnum, Math.max(maxQuestions.get(tnum)!, i + 1))
             })
         })
-        for (const [col, loc] of maxQuestions.entries()) {
-            questions[loc] = questions[loc] || []
-            const t = topics[col]!
-            questions[loc][col] = {add: true, t}
+        if (isOwner && !isPlaying) {
+            for (const [col, loc] of maxQuestions.entries()) {
+                questions[loc] = questions[loc] || []
+                const t = topics[col]!
+                questions[loc][col] = {add: true, t}
+            }
         }
         return questions
     }
 
     renderQuestions = (row: QuestionRow, rowIdx: number) => {
         const {data, showingQuestions} = this.state;
-        const {isOwner, isPlaying, baseValue, valueIncrement} = data;
+        const {isOwner, isPlaying, baseValue, valueIncrement, finishedQuestions} = data;
 
         const elements = []
         for (let i = 0; i < row.length; i++) {
@@ -164,17 +170,26 @@ export default class Main extends Component<MainProps, MainState> {
                 </div>)
             } else if (isOwner) {
                 elements.push(!isPlaying
-                    ? <div className="question">
+                    ? <div className="question showing">
                         <span>${baseValue + (rowIdx * valueIncrement)}</span>
                         <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
                         <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
                     </div>
-                    : <div className="question">
+                    : <div className={classNames("question", {
+                        "showing": showingQuestions
+                    })}>
                         <h2>{showingQuestions ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}</h2>
                     </div>)
             } else {
+                const finished = finishedQuestions.has(d.q!.uuid)
                 elements.push(
-                    <div className="question"><h2>${baseValue + (rowIdx * valueIncrement)}</h2></div>
+                    <div className={classNames("question", {
+                        "finished": finished
+                    })}>
+                        <h2>
+                            {finished ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}
+                        </h2>
+                    </div>
                 )
             }
         }
@@ -182,7 +197,7 @@ export default class Main extends Component<MainProps, MainState> {
     }
 
     render() {
-        const {data, showingPreferences} = this.state;
+        const {data, showingPreferences, showingLeaderboard} = this.state;
         const {topics, isPlaying, isOwner, baseValue, valueIncrement, questionDuration} = data;
         const gridStyles = {
             gridTemplateColumns: topics.map(t => "1fr").join(" ")
@@ -207,6 +222,11 @@ export default class Main extends Component<MainProps, MainState> {
                 {<Fade in={showingPreferences}>
                     <Modal showing={showingPreferences} title="Game Preferences" onClose={this.closeModal}>
                         <EditGamePrefs preferences={{baseValue, valueIncrement, questionDuration}} onSetPreferences={this.updatePreferences}/>
+                    </Modal>
+                </Fade>}
+                {<Fade in={showingLeaderboard}>
+                    <Modal showing={showingLeaderboard} title="Leaderboard" onClose={this.closeModal}>
+                        <Leaderboard/>
                     </Modal>
                 </Fade>}
             </div>
