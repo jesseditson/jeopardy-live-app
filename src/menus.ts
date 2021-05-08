@@ -14,6 +14,7 @@ const err = (name: string) => () => {
 export interface MenuActions {
     showLeaderboard: () => void,
     togglePlayMode: () => void,
+    addTopic: () => void,
     showPreferences: () => void,
 }
 export const menuActions: MenuActions = {
@@ -22,6 +23,7 @@ export const menuActions: MenuActions = {
     // by the constructor of the Main component
     showLeaderboard: err("showLeaderboard"),
     togglePlayMode: err("togglePlayMode"),
+    addTopic: err("addTopic"),
     showPreferences: err("showPreferences"),
 };
 
@@ -78,6 +80,14 @@ export class Menu {
             },
         },
         {
+            id: "addTopic",
+            label: "Add Topic",
+            handler: () => {
+                menuActions.addTopic();
+                return true;
+            },
+        },
+        {
             id: "showPreferences",
             label: "Preferences...",
             handler: () => {
@@ -92,7 +102,7 @@ export class Menu {
         if (data.isPlaying) {
             toolbarCommandIds_.push("showLeaderboard");
         } else if (data.isOwner) {
-            toolbarCommandIds_.push("showPreferences");
+            toolbarCommandIds_.push("addTopic", quip.apps.DocumentMenuCommands.SEPARATOR, "showPreferences");
         }
         return toolbarCommandIds_;
     }

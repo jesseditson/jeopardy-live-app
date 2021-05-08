@@ -26,26 +26,40 @@ export class Topic extends quip.apps.Record {
     getQuestions = () => this.get("questions") as quip.apps.RecordList<Question>
     setName = (name: string) => this.set("name", name)
 
+    private questionsChanged = () => this.notifyListeners();
+    private currentQuestions: Set<Question> = new Set();
+
     initialize() {
         const listenToQuestions = () => {
+            this.currentQuestions.forEach(question => {
+                question.unlisten(this.questionsChanged);
+            })
+            this.currentQuestions = new Set();
             this.getQuestions().getRecords().forEach(question => {
-                question.unlisten(this.notifyListeners);
-                question.listen(this.notifyListeners);
+                this.currentQuestions.add(question);
+                question.listen(this.questionsChanged);
             })
         }
         this.getQuestions().listen(() => {
-            this.notifyListeners();
             listenToQuestions();
+            this.questionsChanged();
         })
+        listenToQuestions();
     }
 
     addQuestion(text: string) {
         const questions = this.getQuestions();
         questions.add({question: text});
     }
+    removeQuestion(uuid: string) {
+        const question = quip.apps.getRecordById(uuid) as Question
+        if (question) {
+            this.getQuestions().remove(question)
+        }
+    }
 
     getData(): TopicData {
-        const questions = this.getQuestions().getRecords().map(q => q.getData())
+        const questions = this.getQuestions().getRecords().map(q => q.getData());
         return {
             uuid: this.getId(),
             name: this.get("name") as string | undefined,

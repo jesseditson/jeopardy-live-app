@@ -47,17 +47,25 @@ export class RootEntity extends quip.apps.RootRecord {
     getTopics = () => this.get("topics") as quip.apps.RecordList<Topic>;
     togglePlayMode = () => this.set("isPlaying", !this.get("isPlaying"));
 
+    private topicsChanged = () => this.notifyListeners();
+    private currentTopics: Set<Topic> = new Set();
+
     initialize() {
         const listenToTopics = () => {
-            this.getTopics().getRecords().forEach(topics => {
-                topics.unlisten(this.notifyListeners);
-                topics.listen(this.notifyListeners);
+            this.currentTopics.forEach(topic => {
+                topic.unlisten(this.topicsChanged);
+            })
+            this.currentTopics = new Set();
+            this.getTopics().getRecords().forEach(topic => {
+                this.currentTopics.add(topic);
+                topic.listen(this.topicsChanged);
             })
         }
         this.getTopics().listen(() => {
-            this.notifyListeners();
             listenToTopics();
+            this.topicsChanged();
         })
+        listenToTopics();
     }
 
     getData(): AppData {
@@ -89,6 +97,13 @@ export class RootEntity extends quip.apps.RootRecord {
             addTopic: (name: string) => {
                 this.getTopics().add({name});
             },
+            removeTopic: (topicId: string) => {
+                const topic = quip.apps.getRecordById(topicId) as Topic;
+                if (!topic) {
+                    return;
+                }
+                this.getTopics().remove(topic);
+            },
             addQuestion: (topicId: string, text: string) => {
                 const topic = quip.apps.getRecordById(topicId) as Topic;
                 if (!topic) {
@@ -102,6 +117,13 @@ export class RootEntity extends quip.apps.RootRecord {
                     return;
                 }
                 topic.setName(name);
+            },
+            removeQuestion: (topicId: string, questionId: string) => {
+                const topic = quip.apps.getRecordById(topicId) as Topic;
+                if (!topic) {
+                    return;
+                }
+                topic.removeQuestion(questionId);
             },
             setQuestion: (questionId: string, text: string) => {
                 const question = quip.apps.getRecordById(questionId) as Question;
