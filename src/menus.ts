@@ -14,6 +14,7 @@ const err = (name: string) => () => {
 export interface MenuActions {
     showLeaderboard: () => void,
     togglePlayMode: () => void,
+    toggleShowQuestions: () => void,
     addTopic: () => void,
     showPreferences: () => void,
 }
@@ -23,6 +24,7 @@ export const menuActions: MenuActions = {
     // by the constructor of the Main component
     showLeaderboard: err("showLeaderboard"),
     togglePlayMode: err("togglePlayMode"),
+    toggleShowQuestions: err("toggleShowQuestions"),
     addTopic: err("addTopic"),
     showPreferences: err("showPreferences"),
 };
@@ -33,7 +35,7 @@ export class Menu {
      * method is called by the Main components listener on the RootEntity.
      * @param data
      */
-    updateToolbar(data: AppData) {
+    updateToolbar(data: AppData, state: {showingQuestions: boolean}) {
         const subCommands: string[] = this.getMainMenuSubCommandIds_(data);
         const commands = this.allCommands_.map(command => {
             if (command.id === "togglePlayMode") {
@@ -52,7 +54,7 @@ export class Menu {
         quip.apps.updateToolbar({
             toolbarCommandIds: this.getToolbarCommandIds_(data),
             menuCommands,
-            highlightedCommandIds: this.getHighlightedCommandIds_(data),
+            highlightedCommandIds: this.getHighlightedCommandIds_(data, state),
             disabledCommandIds: this.getDisabledCommandIds_(data),
         });
     }
@@ -80,6 +82,14 @@ export class Menu {
             },
         },
         {
+            id: "toggleShowQuestions",
+            label: "Show Questions",
+            handler: () => {
+                menuActions.toggleShowQuestions();
+                return true;
+            },
+        },
+        {
             id: "addTopic",
             label: "Add Topic",
             handler: () => {
@@ -101,6 +111,9 @@ export class Menu {
         const toolbarCommandIds_: string[] = data.isOwner ? ["togglePlayMode", quip.apps.DocumentMenuCommands.SEPARATOR] : [];
         if (data.isPlaying) {
             toolbarCommandIds_.push("showLeaderboard");
+            if (data.isOwner) {
+                toolbarCommandIds_.push(quip.apps.DocumentMenuCommands.SEPARATOR, "toggleShowQuestions")
+            }
         } else if (data.isOwner) {
             toolbarCommandIds_.push("addTopic", quip.apps.DocumentMenuCommands.SEPARATOR, "showPreferences");
         }
@@ -112,8 +125,11 @@ export class Menu {
         return mainMenuSubCommandIds;
     }
 
-    private getHighlightedCommandIds_(data: AppData): string[] {
+    private getHighlightedCommandIds_(data: AppData, state: {showingQuestions: boolean}): string[] {
         const highlightedCommandIds: string[] = [];
+        if (state.showingQuestions) {
+            highlightedCommandIds.push("toggleShowQuestions");
+        }
         return highlightedCommandIds;
     }
 

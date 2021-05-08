@@ -19,6 +19,7 @@ interface MainState {
     data: AppData;
     showingLeaderboard: boolean;
     showingPreferences: boolean;
+    showingQuestions: boolean;
 }
 
 type QuestionRow = ({q?: QuestionData, t: TopicData, add?: boolean})[]
@@ -40,6 +41,11 @@ export default class Main extends Component<MainProps, MainState> {
         menuActions.showPreferences = () => {
             this.setState({showingPreferences: true});
         }
+        menuActions.toggleShowQuestions = () => {
+            this.setState(({showingQuestions}) => ({showingQuestions: !showingQuestions}), () => {
+                this.props.menu.updateToolbar(rootRecord.getData(), {showingQuestions: this.state.showingQuestions});
+            });
+        }
         menuActions.togglePlayMode = () => {
             rootRecord.togglePlayMode();
         }
@@ -54,7 +60,7 @@ export default class Main extends Component<MainProps, MainState> {
         const {rootRecord} = props;
         this.setupMenuActions_(rootRecord);
         const data = rootRecord.getData();
-        this.state = {data, showingLeaderboard: false, showingPreferences: false};
+        this.state = {data, showingLeaderboard: false, showingPreferences: false, showingQuestions: false};
     }
 
     componentDidMount() {
@@ -80,7 +86,7 @@ export default class Main extends Component<MainProps, MainState> {
         const {rootRecord, menu} = this.props;
         const data = rootRecord.getData();
         // Update the app menu to reflect most recent app data
-        menu.updateToolbar(data);
+        menu.updateToolbar(data, {showingQuestions: this.state.showingQuestions});
         this.setState({data: rootRecord.getData()});
     };
 
@@ -144,7 +150,7 @@ export default class Main extends Component<MainProps, MainState> {
     }
 
     renderQuestions = (row: QuestionRow, rowIdx: number) => {
-        const {data} = this.state;
+        const {data, showingQuestions} = this.state;
         const {isOwner, isPlaying, baseValue, valueIncrement} = data;
 
         const elements = []
@@ -164,8 +170,7 @@ export default class Main extends Component<MainProps, MainState> {
                         <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
                     </div>
                     : <div className="question">
-                        <span>${baseValue + (rowIdx * valueIncrement)}</span>
-                        <h2>{d.q!.question}</h2>
+                        <h2>{showingQuestions ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}</h2>
                     </div>)
             } else {
                 elements.push(
@@ -178,7 +183,7 @@ export default class Main extends Component<MainProps, MainState> {
 
     render() {
         const {data, showingPreferences} = this.state;
-        const {topics, isOwner, baseValue, valueIncrement, questionDuration} = data;
+        const {topics, isPlaying, isOwner, baseValue, valueIncrement, questionDuration} = data;
         const gridStyles = {
             gridTemplateColumns: topics.map(t => "1fr").join(" ")
         }
@@ -190,7 +195,7 @@ export default class Main extends Component<MainProps, MainState> {
                             {isOwner 
                                 ? <>
                                     <input onChange={(e) => this.changeTopicName(t.uuid, e.target.value)} value={t.name}/>
-                                    <a onClick={() => this.removeTopic(t.uuid)}>❌</a>
+                                    {isPlaying ? null : <a onClick={() => this.removeTopic(t.uuid)}>❌</a>}
                                 </>
                                 : <h2>t.name</h2>}
                         </div>)}
