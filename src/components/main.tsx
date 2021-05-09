@@ -216,6 +216,23 @@ export default class Main extends Component<MainProps, MainState> {
         }
     }
 
+    private getUserScores = (topics: TopicData[]) => {
+        const {data} = this.state;
+        const {baseValue, valueIncrement} = data;
+        const userScores: Map<string, number> = new Map();
+        topics.forEach((topic, tnum) => {
+            topic.questions.forEach((q, i) => {
+                const value = baseValue + (i * valueIncrement)
+                for (const uid of q.answers.keys()) {
+                    if (q.correctUserIds.has(uid)) {
+                        userScores.set(uid, (userScores.get(uid) || 0) + value)
+                    }
+                }
+            })
+        })
+        return userScores
+    }
+
     private getCurrentQuestion = () => {
         const {currentQuestionId} = this.state.data
         if (currentQuestionId) {
@@ -251,7 +268,7 @@ export default class Main extends Component<MainProps, MainState> {
                     </div>
                     : <div className="question showing" ref={d.ref}>
                         <span>${baseValue + (rowIdx * valueIncrement)}</span>
-                        <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
+                        <textarea onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
                         <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
                     </div>)
             } else {
@@ -302,7 +319,7 @@ export default class Main extends Component<MainProps, MainState> {
                 </Fade>}
                 {<Fade in={showingLeaderboard}>
                     <Modal showing={showingLeaderboard} title="Leaderboard" onClose={this.closeModal}>
-                        <Leaderboard/>
+                        <Leaderboard userScores={this.getUserScores(topics)}/>
                     </Modal>
                 </Fade>}
                 {<Fade in={isPlaying && showingCorrectAnswers && choosingCorrectAnswers}>
