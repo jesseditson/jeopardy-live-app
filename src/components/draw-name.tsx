@@ -24,11 +24,10 @@ export default class DrawName extends Component<DrawNameProps, DrawNameState> {
     }
   };
 
-  private currentCanvas: HTMLCanvasElement | undefined
-
-  componentDidUpdate() {
-    const { currentImageURI } = this.props;
-    const newCanvas = !this.currentCanvas || this.canvas.current !== this.currentCanvas
+  private currentCanvas: HTMLCanvasElement | undefined;
+  private updateCanvas = () => {
+    const newCanvas =
+      !this.currentCanvas || this.canvas.current !== this.currentCanvas;
     if (newCanvas && this.canvas.current) {
       if (!this.drawingBoard) {
         this.drawingBoard = create(this.canvas.current);
@@ -36,9 +35,18 @@ export default class DrawName extends Component<DrawNameProps, DrawNameState> {
         this.drawingBoard.setLineSize(4);
         this.drawingBoard.observer.on("drawEnd", this.saveDrawing);
       }
-      if (currentImageURI) {
-        this.drawingBoard.fillImageByDataURL(currentImageURI);
-      }
+    }
+  };
+
+  componentDidUpdate() {
+    this.updateCanvas();
+  }
+
+  componentDidMount() {
+    this.updateCanvas();
+    const { currentImageURI } = this.props;
+    if (currentImageURI) {
+      this.drawingBoard?.fillImageByDataURL(currentImageURI);
     }
   }
 
