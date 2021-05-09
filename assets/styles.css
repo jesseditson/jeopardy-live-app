@@ -30,15 +30,13 @@
     padding: 20px 10px;
 }
 .question input, .question h2, .question span {
-    color: #fff;
+    color: #ffe100;
     text-shadow: 2px 2px 0px #000;
     font-family: "Impact", sans-serif;
 }
 .question.finished h2, .question.showing h2, .question.showing input {
     font-family: "Korinan", serif;
-}
-.question h2, .question span {
-    color: #ffe100;
+    color: #fff;
 }
 .question h2.add-question {
     color: #fff;

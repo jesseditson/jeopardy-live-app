@@ -18,11 +18,12 @@ interface MainProps {
     creationUrl?: string;
 }
 
-interface MainState {
+export interface MainState {
     data: AppData;
     showingLeaderboard: boolean;
     showingPreferences: boolean;
     showingQuestions: boolean;
+    userMode: boolean;
 }
 
 type QuestionRow = ({q?: QuestionData, t: TopicData, add?: boolean, ref?: React.Ref<HTMLDivElement>})[]
@@ -55,7 +56,12 @@ export default class Main extends Component<MainProps, MainState> {
         }
         menuActions.toggleShowQuestions = () => {
             this.setState(({showingQuestions}) => ({showingQuestions: !showingQuestions}), () => {
-                this.props.menu.updateToolbar(rootRecord.getData(), {showingQuestions: this.state.showingQuestions});
+                this.props.menu.updateToolbar(rootRecord.getData(), this.state);
+            });
+        }
+        menuActions.toggleUserMode = () => {
+            this.setState(({userMode}) => ({userMode: !userMode}), () => {
+                this.props.menu.updateToolbar(rootRecord.getData(), this.state);
             });
         }
         menuActions.togglePlayMode = () => {
@@ -74,7 +80,7 @@ export default class Main extends Component<MainProps, MainState> {
         const {rootRecord} = props;
         this.setupMenuActions_(rootRecord);
         const data = rootRecord.getData();
-        this.state = {data, showingLeaderboard: false, showingPreferences: false, showingQuestions: false};
+        this.state = {data, showingLeaderboard: false, showingPreferences: false, showingQuestions: false, userMode: false};
     }
 
     componentDidMount() {
@@ -100,7 +106,7 @@ export default class Main extends Component<MainProps, MainState> {
         const {rootRecord, menu} = this.props;
         const data = rootRecord.getData();
         // Update the app menu to reflect most recent app data
-        menu.updateToolbar(data, {showingQuestions: this.state.showingQuestions});
+        menu.updateToolbar(data, this.state);
         this.setState({data: rootRecord.getData()});
     };
 
@@ -196,12 +202,14 @@ export default class Main extends Component<MainProps, MainState> {
     }
 
     renderQuestions = (row: QuestionRow, rowIdx: number) => {
-        const {data, showingQuestions} = this.state;
-        const {isOwner, isPlaying, baseValue, valueIncrement, finishedQuestions} = data;
+        const {data, showingQuestions, userMode} = this.state;
+        const {isPlaying, baseValue, valueIncrement, finishedQuestions} = data;
+        const isOwner = data.isOwner && !userMode
 
         const elements = []
         for (let i = 0; i < row.length; i++) {
             const d = row[i];
+            const finished = d && d.q && finishedQuestions.has(d.q.uuid)
             if (!d) {
                 elements.push(<div className="question empty"/>);
             } else if (d.add) {
@@ -209,21 +217,21 @@ export default class Main extends Component<MainProps, MainState> {
                     <h2 className="add-question" onClick={() => this.addQuestion(d.t.uuid)}>+ Add Question</h2>
                 </div>)
             } else if (isOwner) {
-                elements.push(!isPlaying
-                    ? <div className="question showing" ref={d.ref}>
-                        <span>${baseValue + (rowIdx * valueIncrement)}</span>
-                        <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
-                        <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
-                    </div>
-                    : <div className={classNames("question", {
-                        "showing": showingQuestions
+                elements.push(isPlaying
+                    ? <div className={classNames("question", {
+                            "showing": showingQuestions,
+                            "finished": finished
                         })}
                         onClick={() => this.setCurrentQuestion(d.q!.uuid)}
                         ref={d.ref}>
-                        <h2>{showingQuestions ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}</h2>
+                        <h2>{(showingQuestions || finished) ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}</h2>
+                    </div>
+                    : <div className="question showing" ref={d.ref}>
+                        <span>${baseValue + (rowIdx * valueIncrement)}</span>
+                        <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
+                        <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
                     </div>)
             } else {
-                const finished = finishedQuestions.has(d.q!.uuid)
                 elements.push(
                     <div className={classNames("question", {
                         "finished": finished

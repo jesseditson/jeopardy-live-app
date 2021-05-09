@@ -1,5 +1,6 @@
 import quip, {MenuCommand} from "quip-apps-api";
 import {AppData} from "./model/root";
+import {MainState} from "./components/main";
 
 /**
  * Menu Actions are created at runtime based on a root record in
@@ -15,6 +16,7 @@ export interface MenuActions {
     showLeaderboard: () => void,
     togglePlayMode: () => void,
     toggleShowQuestions: () => void,
+    toggleUserMode: () => void,
     addTopic: () => void,
     showPreferences: () => void,
 }
@@ -25,6 +27,7 @@ export const menuActions: MenuActions = {
     showLeaderboard: err("showLeaderboard"),
     togglePlayMode: err("togglePlayMode"),
     toggleShowQuestions: err("toggleShowQuestions"),
+    toggleUserMode: err("toggleUserMode"),
     addTopic: err("addTopic"),
     showPreferences: err("showPreferences"),
 };
@@ -35,11 +38,14 @@ export class Menu {
      * method is called by the Main components listener on the RootEntity.
      * @param data
      */
-    updateToolbar(data: AppData, state: {showingQuestions: boolean}) {
+    updateToolbar(data: AppData, state: MainState) {
         const subCommands: string[] = this.getMainMenuSubCommandIds_(data);
         const commands = this.allCommands_.map(command => {
             if (command.id === "togglePlayMode") {
                 command.label = data.isPlaying ? "Edit" : "Play";
+            }
+            if (command.id === "toggleUserMode") {
+                command.label = state.userMode ? "User Mode" : "Emulate User";
             }
             return command
         })
@@ -52,7 +58,7 @@ export class Menu {
         ] : commands;
 
         quip.apps.updateToolbar({
-            toolbarCommandIds: this.getToolbarCommandIds_(data),
+            toolbarCommandIds: this.getToolbarCommandIds_(data, state),
             menuCommands,
             highlightedCommandIds: this.getHighlightedCommandIds_(data, state),
             disabledCommandIds: this.getDisabledCommandIds_(data),
@@ -90,6 +96,14 @@ export class Menu {
             },
         },
         {
+            id: "toggleUserMode",
+            label: "Emulate User",
+            handler: () => {
+                menuActions.toggleUserMode();
+                return true;
+            },
+        },
+        {
             id: "addTopic",
             label: "Add Topic",
             handler: () => {
@@ -107,28 +121,37 @@ export class Menu {
         },
     ];
 
-    private getToolbarCommandIds_(data: AppData): string[] {
-        const toolbarCommandIds_: string[] = data.isOwner ? ["togglePlayMode", quip.apps.DocumentMenuCommands.SEPARATOR] : [];
+    private getToolbarCommandIds_(data: AppData, state: MainState): string[] {
+        const isOwner = data.isOwner && !state.userMode
+        const toolbarCommandIds_: string[] = isOwner ? ["togglePlayMode", quip.apps.DocumentMenuCommands.SEPARATOR] : [];
         if (data.isPlaying) {
             toolbarCommandIds_.push("showLeaderboard");
-            if (data.isOwner) {
-                toolbarCommandIds_.push(quip.apps.DocumentMenuCommands.SEPARATOR, "toggleShowQuestions")
+            if (isOwner) {
+                toolbarCommandIds_.push(quip.apps.DocumentMenuCommands.SEPARATOR, "toggleShowQuestions", quip.apps.DocumentMenuCommands.SEPARATOR, "toggleUserMode")
+            } else if (data.isOwner) {
+                toolbarCommandIds_.push(quip.apps.DocumentMenuCommands.SEPARATOR, "toggleUserMode")
             }
-        } else if (data.isOwner) {
-            toolbarCommandIds_.push("addTopic", quip.apps.DocumentMenuCommands.SEPARATOR, "showPreferences");
+        } else if (isOwner) {
+            toolbarCommandIds_.push("addTopic", quip.apps.DocumentMenuCommands.SEPARATOR, "toggleUserMode", quip.apps.DocumentMenuCommands.SEPARATOR, "showPreferences");
         }
         return toolbarCommandIds_;
     }
 
     private getMainMenuSubCommandIds_(data: AppData): string[] {
         const mainMenuSubCommandIds: string[] = [];
+        if (data.isOwner) {
+            mainMenuSubCommandIds.push("showPreferences")
+        }
         return mainMenuSubCommandIds;
     }
 
-    private getHighlightedCommandIds_(data: AppData, state: {showingQuestions: boolean}): string[] {
+    private getHighlightedCommandIds_(data: AppData, state: MainState): string[] {
         const highlightedCommandIds: string[] = [];
         if (state.showingQuestions) {
             highlightedCommandIds.push("toggleShowQuestions");
+        }
+        if (state.userMode) {
+            highlightedCommandIds.push("toggleUserMode")
         }
         return highlightedCommandIds;
     }
