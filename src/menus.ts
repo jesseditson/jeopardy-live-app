@@ -133,6 +133,8 @@ export class Menu {
             }
         } else if (isOwner) {
             toolbarCommandIds_.push("addTopic", quip.apps.DocumentMenuCommands.SEPARATOR, "toggleUserMode", quip.apps.DocumentMenuCommands.SEPARATOR, "showPreferences");
+        } else if (data.isOwner) {
+            toolbarCommandIds_.push(quip.apps.DocumentMenuCommands.SEPARATOR, "toggleUserMode")
         }
         return toolbarCommandIds_;
     }

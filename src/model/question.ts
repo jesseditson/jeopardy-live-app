@@ -21,7 +21,7 @@ export class Question extends quip.apps.Record {
     static getDefaultProperties(): {[property: string]: any} {
         return {
             answers: {},
-            correctUserId: []
+            correctUserIds: []
         };
     }
 
@@ -31,6 +31,17 @@ export class Question extends quip.apps.Record {
         const answers = this.get("answers");
         answers[userId] = answer;
         this.set("answers", answers);
+    }
+
+    toggleCorrect(userId: string) {
+        const correctUserIds = this.get("correctUserIds")
+        const existingIndex = correctUserIds.indexOf(userId)
+        if (existingIndex === -1) {
+            correctUserIds.push(userId)
+        } else {
+            correctUserIds.splice(existingIndex, 1)
+        }
+        this.set("correctUserIds", correctUserIds)
     }
 
     getData(): QuestionData {

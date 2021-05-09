@@ -10,9 +10,10 @@ export interface AppData {
     baseValue: number,
     valueIncrement: number,
     questionDuration: number,
-    currentQuestion?: QuestionData,
+    currentQuestionId?: string,
     questionStart?: number,
     finishedQuestions: Set<string>
+    showingCorrectAnswers: boolean;
 }
 
 export class RootEntity extends quip.apps.RootRecord {
@@ -26,9 +27,10 @@ export class RootEntity extends quip.apps.RootRecord {
             baseValue: "number",
             questionDuration: "number",
             valueIncrement: "number",
-            currentQuestion: "object",
+            currentQuestionId: "string",
             questionStart: "number",
             finishedQuestions: "array",
+            showingCorrectAnswers: "boolean",
         };
     }
 
@@ -39,12 +41,13 @@ export class RootEntity extends quip.apps.RootRecord {
         }
         return {
             ownerId: viewingUser?.id(),
-            topics: [],
+            topics: [{name: "New Topic"}],
             baseValue: 100,
             valueIncrement: 100,
             questionDuration: 30 * 1000, // 30 seconds
             isPlaying: false,
-            finishedQuestions: []
+            finishedQuestions: [],
+            showingCorrectAnswers: false
         };
     }
 
@@ -61,7 +64,8 @@ export class RootEntity extends quip.apps.RootRecord {
             const now = new Date().getTime();
             const duration = this.get("questionDuration");
             if (now - start > duration) {
-                this.set("currentQuestion", undefined);
+                // When complete, show the correct answers to everyone
+                this.set("showingCorrectAnswers", true);
                 window.clearInterval(this.countdownInterval)
             }
         }, 500);
@@ -83,7 +87,7 @@ export class RootEntity extends quip.apps.RootRecord {
             this.topicsChanged();
         })
         listenToTopics();
-        if (this.get("currentQuestion")) {
+        if (this.get("currentQuestionId")) {
             this.startCountingDown()
         }
     }
@@ -99,20 +103,21 @@ export class RootEntity extends quip.apps.RootRecord {
             baseValue: this.get("baseValue"),
             questionDuration: this.get("questionDuration"),
             questionStart: this.get("questionStart"),
-            currentQuestion: this.get("currentQuestion"),
+            currentQuestionId: this.get("currentQuestionId"),
             topics,
-            finishedQuestions: new Set(this.get("finishedQuestions"))
+            finishedQuestions: new Set(this.get("finishedQuestions")),
+            showingCorrectAnswers: this.get("showingCorrectAnswers")
         };
     }
 
     getActions() {
         return {
             onAnswer: (answer: string) => {
-                const currentQuestion = this.get("currentQuestion")
-                if (!currentQuestion) {
+                const currentQuestionId = this.get("currentQuestionId")
+                if (!currentQuestionId) {
                     return;
                 }
-                const question = quip.apps.getRecordById(currentQuestion.uuid) as Question;
+                const question = quip.apps.getRecordById(currentQuestionId) as Question;
                 const userId = quip.apps.getViewingUser()?.id();
                 if (!userId || !question) {
                     return;
@@ -166,19 +171,38 @@ export class RootEntity extends quip.apps.RootRecord {
             setCurrentQuestion: (questionId?: string) => {
                 this.set("questionStart", undefined);
                 if (!questionId) {
-                    this.set("currentQuestion", undefined);
+                    this.set("currentQuestionId", undefined);
                     return;
                 }
                 const question = quip.apps.getRecordById(questionId) as Question;
                 if (!question) {
                     return;
                 }
-                const finishedQuestions = this.get("finishedQuestions");
-                finishedQuestions.push(questionId);
-                this.set("finishedQuestions", finishedQuestions);
                 this.set("questionStart", new Date().getTime());
-                this.set("currentQuestion", question.getData());
+                this.set("currentQuestionId", question.id());
                 this.startCountingDown();
+            },
+            toggleAnswerCorrect: (userId: string) => {
+                const currentQuestionId = this.get("currentQuestionId");
+                if (!currentQuestionId) {
+                    return;
+                }
+                const question = quip.apps.getRecordById(currentQuestionId) as Question;
+                if (!question) {
+                    return;
+                }
+                question.toggleCorrect(userId);
+                // this.set("currentQuestionId", question.id());
+            },
+            finishMarkingAnswers: () => {
+                const currentQuestionId = this.get("currentQuestionId");
+                if (!currentQuestionId) {
+                    return;
+                }
+                const finishedQuestions = this.get("finishedQuestions");
+                finishedQuestions.push(currentQuestionId);
+                this.set("finishedQuestions", finishedQuestions);
+                this.set("currentQuestionId", undefined);
             }
         };
     }

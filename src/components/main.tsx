@@ -4,12 +4,14 @@ import classNames from "classnames";
 import { CSSTransition } from 'react-transition-group';
 import {menuActions, Menu} from "../menus";
 import {AppData, RootEntity} from "../model/root";
-import { QuestionData } from "../model/question";
+import { Question, QuestionData } from "../model/question";
 import { TopicData } from "../model/topic";
 import Modal from "./modal";
 import EditGamePrefs, { GamePreferences } from "./edit-game-prefs";
 import Leaderboard from "./leaderboard";
 import Answer from "./answer";
+import Answers from "./answers";
+import CorrectAnswers from "./correct-answers";
 
 interface MainProps {
     rootRecord: RootEntity;
@@ -157,6 +159,18 @@ export default class Main extends Component<MainProps, MainState> {
         onAnswer(answer)
     }
 
+    private toggleAnswerCorrect = (userId: string) => {
+        const {rootRecord} = this.props;
+        const {toggleAnswerCorrect} = rootRecord.getActions();
+        toggleAnswerCorrect(userId)
+    }
+
+    private finishedMarkingAnswers = () => {
+        const {rootRecord} = this.props;
+        const {finishMarkingAnswers} = rootRecord.getActions();
+        finishMarkingAnswers()
+    }
+
     private closeModal = () => {
         this.setState({showingPreferences: false, showingLeaderboard: false})
     }
@@ -199,6 +213,14 @@ export default class Main extends Component<MainProps, MainState> {
             const {x, y} = ref.current.getBoundingClientRect()
             console.log(`${x}px ${y}px`)
             return `${x}px ${y}px`
+        }
+    }
+
+    private getCurrentQuestion = () => {
+        const {currentQuestionId} = this.state.data
+        if (currentQuestionId) {
+            const record = quip.apps.getRecordById(currentQuestionId) as Question | undefined
+            return record?.getData()
         }
     }
 
@@ -248,11 +270,14 @@ export default class Main extends Component<MainProps, MainState> {
     }
 
     render() {
-        const {data, showingPreferences, showingLeaderboard} = this.state;
-        const {topics, isPlaying, isOwner, baseValue, valueIncrement, currentQuestion, questionDuration, questionStart} = data;
+        const {data, showingPreferences, showingLeaderboard, userMode} = this.state;
+        const {topics, isPlaying, baseValue, valueIncrement, currentQuestionId, questionDuration, questionStart, showingCorrectAnswers, finishedQuestions} = data;
+        const isOwner = data.isOwner && !userMode
         const gridStyles = {
             gridTemplateColumns: topics.map(t => "1fr").join(" ")
         }
+        const choosingCorrectAnswers = currentQuestionId ? isOwner && !finishedQuestions.has(currentQuestionId) : false;
+        const currentQuestion = this.getCurrentQuestion()
         return (
             <div className="root">
                 <div className="topics">
@@ -263,7 +288,7 @@ export default class Main extends Component<MainProps, MainState> {
                                     <input onChange={(e) => this.changeTopicName(t.uuid, e.target.value)} value={t.name}/>
                                     {isPlaying ? null : <a onClick={() => this.removeTopic(t.uuid)}>❌</a>}
                                 </>
-                                : <h2>t.name</h2>}
+                                : <h2>{t.name}</h2>}
                         </div>)}
                     </div>
                     <div className="questions" style={gridStyles}>
@@ -280,7 +305,13 @@ export default class Main extends Component<MainProps, MainState> {
                         <Leaderboard/>
                     </Modal>
                 </Fade>}
-                {<Zoom in={!!currentQuestion} origin={this.originForQuestion(currentQuestion?.uuid)}>
+                {<Fade in={showingCorrectAnswers && choosingCorrectAnswers}>
+                    <Answers currentQuestion={currentQuestion} toggleCorrect={this.toggleAnswerCorrect} onFinished={this.finishedMarkingAnswers}/>
+                </Fade>}
+                {<Fade in={showingCorrectAnswers && !choosingCorrectAnswers}>
+                    <CorrectAnswers currentQuestion={currentQuestion}/>
+                </Fade>}
+                {<Zoom in={!!currentQuestion && !showingCorrectAnswers} origin={this.originForQuestion(currentQuestion?.uuid)}>
                     <Answer
                         isOwner={isOwner}
                         questionDuration={questionDuration}
