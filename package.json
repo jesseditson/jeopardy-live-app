@@ -1,6 +1,6 @@
 {
     "name": "jeopardy",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "A Jeopardy game that you can play inside of QUip",
     "license": "UNLICENSED",
     "scripts": {
