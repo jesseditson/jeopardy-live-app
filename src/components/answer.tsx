@@ -69,9 +69,9 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
             <div className="question finished">
                 <h2>{currentQuestion?.question}</h2>
             </div>
-            <div className="answer-text" style={{width: inputWidth}}>
+            {!isOwner ? <div className="answer-text" style={{width: inputWidth}}>
                 <textarea value={answer} placeholder="Enter Answer" onChange={this.updateAnswer}/>
-            </div>
+            </div> : null}
         </div>
     }
 }

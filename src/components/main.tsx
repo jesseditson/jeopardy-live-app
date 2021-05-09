@@ -163,8 +163,9 @@ export default class Main extends Component<MainProps, MainState> {
 
     // Returns a matrix of questions
     private getQuestions = (topics: TopicData[]): QuestionRow[] => {
-        const {data} = this.state;
-        const {isOwner, isPlaying} = data;
+        const {data, userMode} = this.state;
+        const {isPlaying} = data;
+        const isOwner = data.isOwner && !userMode
         const questions: QuestionRow[] = []
         const maxQuestions: Map<number, number> = new Map()
         this.questionElements = new Map()
@@ -222,7 +223,7 @@ export default class Main extends Component<MainProps, MainState> {
                             "showing": showingQuestions,
                             "finished": finished
                         })}
-                        onClick={() => this.setCurrentQuestion(d.q!.uuid)}
+                        onClick={!finished ? () => this.setCurrentQuestion(d.q!.uuid) : undefined}
                         ref={d.ref}>
                         <h2>{(showingQuestions || finished) ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}</h2>
                     </div>
