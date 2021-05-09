@@ -147,9 +147,9 @@ export class Menu {
       toolbarCommandIds_.push(
         "add-topic",
         quip.apps.DocumentMenuCommands.SEPARATOR,
-        "toggle-user-mode",
+        "show-preferences",
         quip.apps.DocumentMenuCommands.SEPARATOR,
-        "show-preferences"
+        "toggle-user-mode",
       );
     } else if (data.isOwner) {
       toolbarCommandIds_.push(
