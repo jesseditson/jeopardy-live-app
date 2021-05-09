@@ -3,12 +3,18 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
-    width: 100%;
+    width: 800px;
+    min-height: 500px;
 }
 
 @font-face {
     font-family: "Korinan";
     src: url("korinan.ttf");
+}
+
+@font-face {
+    font-family: "Gyparody";
+    src: url("gyparody.ttf");
 }
 
 .topics {
@@ -109,6 +115,8 @@
 .modal .modal-header h2 {
     font-size: 24px;
     color: #fff;
+    font-family: "Gyparody", sans-serif;
+    font-weight: 700;
 }
 
 .modal-appear {
@@ -135,14 +143,14 @@
     box-shadow: 2px 0px 10px rgba(0,0,0,0.4);
 }
 
-.modal input, .modal button {
+input, button {
     font-weight: 800;
     font-size: 20px;
     color: #ffe100;
     padding: 20px;
 }
 
-.modal button {
+button {
     background-color: #ffe100;
     color: #324ca8;
     border: none;
@@ -153,7 +161,7 @@
     box-shadow: 2px 0px 10px rgba(0,0,0,0.4);
 }
 
-.modal button:active {
+button:active {
     box-shadow: 0px 0px 0px rgba(0,0,0,0.4);
 }
 
@@ -170,13 +178,15 @@
 .preferences .settings input {
     border: none;
 }
-.preferences .footer {
+
+.footer {
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+    width: 100%;
 }
 
-.answer {
+.question-answer, .answers {
     position: absolute;
     top: 0;
     left: 0;
@@ -184,12 +194,13 @@
     right: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     background-color: #324ca8;
     flex-direction: column;
+    padding: 20px;
 }
 
-.answer .countdown {
+.question-answer .countdown {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -197,10 +208,10 @@
     font-family: "Impact", serif;
 }
 
-.answer .question {
+.question-answer .question {
     border: none;
 }
-.answer .question h2 {
+.question-answer .question h2 {
     color: #fff;
 }
 
@@ -212,4 +223,63 @@
     color: #ffe100;
     border-radius: 0;
     outline: none;
+}
+
+.question-text {
+    text-shadow: 2px 2px 0px #000;
+    font-family: "Korinan", serif;
+    font-size: 2em;
+    color: #fff;
+    padding: 40px;
+}
+
+.answers .header {
+    font-family: "Gyparody", sans-serif;
+    font-weight: 700;
+    font-size: 40px;
+    color: #ffe100;
+}
+
+.answers {
+    color: #fff;
+}
+
+.user-answers {
+    display: grid;
+    font-size: 1.5em;
+}
+
+.answers .answer {
+    text-shadow: 2px 2px 0px #000;
+    font-family: "Korinan", serif;
+    margin-left: 10px;
+}
+
+.user-answer {
+    border: 2px solid #000;
+    padding: 10px;
+    cursor: pointer;
+}
+.correct-answers {
+    flex-grow: 1;
+    font-size: 1.5em;
+}
+.correct-answers-title {
+    font-size: 24px;
+    color: #ffe100;
+    font-family: "Impact", serif;
+}
+.answers .user-name h2 {
+    color: #ffe100;
+    font-family: "Impact", serif;
+    text-shadow: 2px 2px 0px #000;
+    font-size: 1em;
+}
+.answers .user-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.user-correct-answer {
+    display: flex;
 }

@@ -21,15 +21,20 @@ export default class CorrectAnswers extends Component<CorrectAnswersProps, Corre
             return null;
         }
         return <div className="answers">
-            {Array.from(currentQuestion.answers.entries())
-                .filter(([userId]) => currentQuestion.correctUserIds.has(userId))
-                .map(([userId, answer]) => {
-                    const user = quip.apps.getUserById(userId)
-                    return <div key={userId}>
-                        <h2 className="user-name">{user ? user.getName() : userId}</h2>
-                        <p className="answer">{answer}</p>
-                    </div>
-                })}
+            <h1 className="header">Answers!</h1>
+            <h2 className="question-text">{currentQuestion.question}</h2>
+            <h2 className="correct-answers-title">🏆 Correct 🏆</h2>
+            <div className="correct-answers">
+                {Array.from(currentQuestion.answers.entries())
+                    .filter(([userId]) => currentQuestion.correctUserIds.has(userId))
+                    .map(([userId, answer]) => {
+                        const user = quip.apps.getUserById(userId)
+                        return <div className="user-correct-answer" key={userId}>
+                            <div className="user-name"><h2>{user ? user.getName() : userId}:</h2></div>
+                            <p className="answer">{answer}</p>
+                        </div>
+                    })}
+            </div>
         </div>
     }
 }

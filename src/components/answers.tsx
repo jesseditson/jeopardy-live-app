@@ -23,13 +23,21 @@ export default class Answers extends Component<AnswersProps, AnswersState> {
             return null;
         }
         return <div className="answers">
-            {Array.from(currentQuestion.answers.entries()).map(([userId, answer]) => {
-                const user = quip.apps.getUserById(userId)
-                return <div key={userId} onClick={() => toggleCorrect(userId)}>
-                    <h2 className="user-name">{user ? user.getName() : userId}</h2>
-                    <p className="answer">{answer}</p>
-                </div>
-            })}
+            <h1 className="header">Answers!</h1>
+            <h2 className="question-text">{currentQuestion.question}</h2>
+            <div className="user-answers">
+                {Array.from(currentQuestion.answers.entries()).map(([userId, answer]) => {
+                    const user = quip.apps.getUserById(userId)
+                    return <div className="user-answer" key={userId} onClick={() => toggleCorrect(userId)}>
+                        <div className="user-name">
+                            <h2>{user ? user.getName() : userId}</h2>
+                            <span>{currentQuestion.correctUserIds.has(userId)
+                                ? "🏆" : "❌"}</span>
+                        </div>
+                        <p className="answer">{answer}</p>
+                    </div>
+                })}
+            </div>
             <div className="footer">
                 <button type="submit" onClick={() => onFinished()}>Done</button>
             </div>

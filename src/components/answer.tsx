@@ -64,7 +64,7 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
         if (this.ref.current) {
             inputWidth = this.ref.current?.getBoundingClientRect().width - 20
         }
-        return <div className="answer" ref={this.ref}>
+        return <div className="question-answer" ref={this.ref}>
             <div className="countdown">{remainingSeconds} Second{remainingSeconds > 1 ? "s" : ""} Remaining</div>
             <div className="question finished">
                 <h2>{currentQuestion?.question}</h2>

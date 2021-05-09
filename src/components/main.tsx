@@ -305,13 +305,13 @@ export default class Main extends Component<MainProps, MainState> {
                         <Leaderboard/>
                     </Modal>
                 </Fade>}
-                {<Fade in={showingCorrectAnswers && choosingCorrectAnswers}>
+                {<Fade in={isPlaying && showingCorrectAnswers && choosingCorrectAnswers}>
                     <Answers currentQuestion={currentQuestion} toggleCorrect={this.toggleAnswerCorrect} onFinished={this.finishedMarkingAnswers}/>
                 </Fade>}
-                {<Fade in={showingCorrectAnswers && !choosingCorrectAnswers}>
+                {<Fade in={isPlaying && showingCorrectAnswers && !choosingCorrectAnswers}>
                     <CorrectAnswers currentQuestion={currentQuestion}/>
                 </Fade>}
-                {<Zoom in={!!currentQuestion && !showingCorrectAnswers} origin={this.originForQuestion(currentQuestion?.uuid)}>
+                {<Zoom in={isPlaying && !!currentQuestion && !showingCorrectAnswers} origin={this.originForQuestion(currentQuestion?.uuid)}>
                     <Answer
                         isOwner={isOwner}
                         questionDuration={questionDuration}
