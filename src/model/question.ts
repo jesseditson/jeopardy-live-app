@@ -1,61 +1,61 @@
 import quip from "quip-apps-api";
 
 export interface QuestionData {
-    uuid: string;
-    question?: string;
-    answers: Map<string, string>;
-    correctUserIds: Set<string>;
+  uuid: string;
+  question?: string;
+  answers: Map<string, string>;
+  correctUserIds: Set<string>;
 }
 
 export class Question extends quip.apps.Record {
-    static ID = "question";
+  static ID = "question";
 
-    static getProperties() {
-        return {
-            question: "string",
-            answers: "object",
-            correctUserIds: "array"
-        };
+  static getProperties() {
+    return {
+      question: "string",
+      answers: "object",
+      correctUserIds: "array",
+    };
+  }
+
+  static getDefaultProperties(): { [property: string]: any } {
+    return {
+      answers: {},
+      correctUserIds: [],
+    };
+  }
+
+  setQuestion = (question: string) => this.set("question", question);
+
+  addAnswer(userId: string, answer: string) {
+    const answers = this.get("answers");
+    answers[userId] = answer;
+    this.set("answers", answers);
+  }
+
+  toggleCorrect(userId: string) {
+    const correctUserIds = this.get("correctUserIds");
+    const existingIndex = correctUserIds.indexOf(userId);
+    if (existingIndex === -1) {
+      correctUserIds.push(userId);
+    } else {
+      correctUserIds.splice(existingIndex, 1);
     }
+    this.set("correctUserIds", correctUserIds);
+  }
 
-    static getDefaultProperties(): {[property: string]: any} {
-        return {
-            answers: {},
-            correctUserIds: []
-        };
+  getData(): QuestionData {
+    const answersObj = this.get("answers");
+    let answers: Map<string, string> = new Map();
+    for (const answer in answersObj) {
+      answers.set(answer, answersObj[answer]);
     }
-
-    setQuestion = (question: string) => this.set("question", question);
-
-    addAnswer(userId: string, answer: string) {
-        const answers = this.get("answers");
-        answers[userId] = answer;
-        this.set("answers", answers);
-    }
-
-    toggleCorrect(userId: string) {
-        const correctUserIds = this.get("correctUserIds")
-        const existingIndex = correctUserIds.indexOf(userId)
-        if (existingIndex === -1) {
-            correctUserIds.push(userId)
-        } else {
-            correctUserIds.splice(existingIndex, 1)
-        }
-        this.set("correctUserIds", correctUserIds)
-    }
-
-    getData(): QuestionData {
-        const answersObj = this.get("answers")
-        let answers: Map<string, string> = new Map();
-        for (const answer in answersObj) {
-            answers.set(answer, answersObj[answer]);
-        }
-        const correctUserIds: Set<string> = new Set(this.get("correctUserIds"));
-        return {
-            uuid: this.getId(),
-            question: this.get("question") as string | undefined,
-            answers,
-            correctUserIds
-        };
-    }
+    const correctUserIds: Set<string> = new Set(this.get("correctUserIds"));
+    return {
+      uuid: this.getId(),
+      question: this.get("question") as string | undefined,
+      answers,
+      correctUserIds,
+    };
+  }
 }

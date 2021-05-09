@@ -12,5 +12,10 @@
     "toolbar_icon": "assets/icons/toolbar.svg",
     "thumbnail": "assets/icons/thumbnail.svg",
     "js_files": ["dist/app.js"],
-    "css_files": ["assets/styles.css"]
+    "css_files": ["assets/styles.css"],
+    "other_resources": [
+        "assets/gyparody.ttf",
+        "assets/korinan.ttf",
+        "assets/matchalatte.ttf"
+    ]
 }
