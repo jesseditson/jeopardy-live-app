@@ -4,7 +4,7 @@
     "name": "Jeopardy!",
     "description": "A Jeopardy game that you can play inside of QUip",
     "version_name": "0.3.0",
-    "version_number": 4,
+    "version_number": 5,
     "sizing_mode": "fit_content",
     "initial_height": 500,
     "initial_width": 500,
