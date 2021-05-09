@@ -4,7 +4,7 @@ import DrawName from "./draw-name";
 
 interface EditNameProps {
   currentImageURI?: string;
-  onSave: (imageURI: string) => void;
+  onSave: (imageURI?: string) => void;
 }
 
 interface EditNameState {
@@ -18,7 +18,9 @@ export default class EditName extends Component<EditNameProps, EditNameState> {
   }
 
   onSave = () => {
-    this.onSave();
+    const {onSave} = this.props;
+    const {newURI} = this.state;
+    onSave(newURI);
   };
 
   render() {

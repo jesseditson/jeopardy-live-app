@@ -106,7 +106,7 @@ export class RootEntity extends quip.apps.RootRecord {
     const viewingUser = quip.apps.getViewingUser();
     const isOwner = viewingUser?.id() === this.get("ownerId");
     const userImages = new Map();
-    const userImagesObj = this.get("userImages") as {[key: string]: string}
+    const userImagesObj = this.get("userImages") as { [key: string]: string };
     for (const userId in userImagesObj) {
       userImages.set(userId, userImagesObj[userId]);
     }
@@ -220,11 +220,15 @@ export class RootEntity extends quip.apps.RootRecord {
         this.set("finishedQuestions", finishedQuestions);
         this.set("currentQuestionId", undefined);
       },
-      updateUserImage: (imageURI: string) => {
-        const userImages: {[id: string]: string} = this.get("userImages");
-        const userId = quip.apps.getViewingUser()?.id()
+      updateUserImage: (imageURI?: string) => {
+        const userImages: { [id: string]: string } = this.get("userImages");
+        const userId = quip.apps.getViewingUser()?.id();
         if (userId) {
-          userImages[userId] = imageURI
+          if (!imageURI) {
+            delete userImages[userId];
+          } else {
+            userImages[userId] = imageURI;
+          }
           this.set("userImages", userImages);
         }
       },

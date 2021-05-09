@@ -205,7 +205,7 @@ export default class Main extends Component<MainProps, MainState> {
     onAnswer(answer);
   };
 
-  private updateUserImage = (imageURI: string) => {
+  private updateUserImage = (imageURI?: string) => {
     const { rootRecord } = this.props;
     const { updateUserImage } = rootRecord.getActions();
     updateUserImage(imageURI);
