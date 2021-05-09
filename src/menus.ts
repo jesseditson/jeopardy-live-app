@@ -13,7 +13,7 @@ const err = (name: string) => () => {
     throw new Error(`MenuAction not implemented: ${name}`);
 };
 export interface MenuActions {
-    showLeaderboard: () => void,
+    toggleLeaderboard: () => void,
     togglePlayMode: () => void,
     toggleShowQuestions: () => void,
     toggleUserMode: () => void,
@@ -24,7 +24,7 @@ export const menuActions: MenuActions = {
     // Set the default implementation of menu actions here.
     // At runtime this `err` implementation should be replaced
     // by the constructor of the Main component
-    showLeaderboard: err("showLeaderboard"),
+    toggleLeaderboard: err("toggleLeaderboard"),
     togglePlayMode: err("togglePlayMode"),
     toggleShowQuestions: err("toggleShowQuestions"),
     toggleUserMode: err("toggleUserMode"),
@@ -72,10 +72,10 @@ export class Menu {
      */
     private readonly allCommands_: MenuCommand[] = [
         {
-            id: "showLeaderboard",
+            id: "toggleLeaderboard",
             label: "Show Leaderboard",
             handler: () => {
-                menuActions.showLeaderboard();
+                menuActions.toggleLeaderboard();
                 return true;
             },
         },
@@ -89,7 +89,7 @@ export class Menu {
         },
         {
             id: "toggleShowQuestions",
-            label: "Show Questions",
+            label: "Peek Questions",
             handler: () => {
                 menuActions.toggleShowQuestions();
                 return true;
@@ -125,7 +125,7 @@ export class Menu {
         const isOwner = data.isOwner && !state.userMode
         const toolbarCommandIds_: string[] = isOwner ? ["togglePlayMode", quip.apps.DocumentMenuCommands.SEPARATOR] : [];
         if (data.isPlaying) {
-            toolbarCommandIds_.push("showLeaderboard");
+            toolbarCommandIds_.push("toggleLeaderboard");
             if (isOwner) {
                 toolbarCommandIds_.push(quip.apps.DocumentMenuCommands.SEPARATOR, "toggleShowQuestions", quip.apps.DocumentMenuCommands.SEPARATOR, "toggleUserMode")
             } else if (data.isOwner) {
@@ -154,6 +154,9 @@ export class Menu {
         }
         if (state.userMode) {
             highlightedCommandIds.push("toggleUserMode")
+        }
+        if (state.showingLeaderboard) {
+            highlightedCommandIds.push("toggleLeaderboard")
         }
         return highlightedCommandIds;
     }

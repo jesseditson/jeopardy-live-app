@@ -59,6 +59,7 @@ export class RootEntity extends quip.apps.RootRecord {
 
     private countdownInterval: number | undefined;
     private startCountingDown = () => {
+        this.set("showingCorrectAnswers", false);
         this.countdownInterval = window.setInterval(() => {
             const start = this.get("questionStart");
             const now = new Date().getTime();
