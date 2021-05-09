@@ -226,7 +226,11 @@ export default class Main extends Component<MainProps, MainState> {
   private closeModal = () => {
     const { rootRecord } = this.props;
     this.setState(
-      { showingPreferences: false, showingLeaderboard: false, showingEditName: false },
+      {
+        showingPreferences: false,
+        showingLeaderboard: false,
+        showingEditName: false,
+      },
       () => {
         this.props.menu.updateToolbar(rootRecord.getData(), this.state);
       }
@@ -278,8 +282,11 @@ export default class Main extends Component<MainProps, MainState> {
 
   private getUserScores = (topics: TopicData[]) => {
     const { data } = this.state;
-    const { baseValue, valueIncrement } = data;
+    const { baseValue, valueIncrement, userImages } = data;
     const userScores: Map<string, number> = new Map();
+    for (const [uid] of userImages) {
+      userScores.set(uid, 0);
+    }
     topics.forEach((topic, tnum) => {
       topic.questions.forEach((q, i) => {
         const value = baseValue + i * valueIncrement;
@@ -381,7 +388,7 @@ export default class Main extends Component<MainProps, MainState> {
       showingPreferences,
       showingLeaderboard,
       userMode,
-      showingEditName
+      showingEditName,
     } = this.state;
     const {
       topics,
@@ -394,7 +401,7 @@ export default class Main extends Component<MainProps, MainState> {
       questionStart,
       showingCorrectAnswers,
       finishedQuestions,
-      userImages
+      userImages,
     } = data;
     const isOwner = data.isOwner && !userMode;
     const gridStyles = {
@@ -403,7 +410,9 @@ export default class Main extends Component<MainProps, MainState> {
     const choosingCorrectAnswers = currentQuestionId
       ? isOwner && !finishedQuestions.has(currentQuestionId)
       : false;
-    const currentUserImageURI = userImages.get(quip.apps.getViewingUser()?.id() || "")
+    const currentUserImageURI = userImages.get(
+      quip.apps.getViewingUser()?.id() || ""
+    );
     const currentQuestion = this.getCurrentQuestion();
     return (
       <div className="root">
@@ -463,14 +472,18 @@ export default class Main extends Component<MainProps, MainState> {
           <Fade
             in={isPlaying && showingCorrectAnswers && !choosingCorrectAnswers}
           >
-            <CorrectAnswers userImages={userImages} currentQuestion={currentQuestion} />
+            <CorrectAnswers
+              userImages={userImages}
+              currentQuestion={currentQuestion}
+            />
           </Fade>
         }
         {
-          <Fade
-            in={!isPlaying && !isOwner}
-          >
-            <WaitingRoom ownerId={ownerId} onUpdateImage={this.updateUserImage}/>
+          <Fade in={!isPlaying && !isOwner}>
+            <WaitingRoom
+              ownerId={ownerId}
+              onUpdateImage={this.updateUserImage}
+            />
           </Fade>
         }
 
@@ -495,7 +508,10 @@ export default class Main extends Component<MainProps, MainState> {
               title="Leaderboard"
               onClose={this.closeModal}
             >
-              <Leaderboard userImages={userImages} userScores={this.getUserScores(topics)} />
+              <Leaderboard
+                userImages={userImages}
+                userScores={this.getUserScores(topics)}
+              />
             </Modal>
           </Fade>
         }
@@ -506,7 +522,13 @@ export default class Main extends Component<MainProps, MainState> {
               title="Edit Name"
               onClose={this.closeModal}
             >
-              <EditName currentImageURI={currentUserImageURI} onSave={this.updateUserImage}/>
+              <EditName
+                currentImageURI={currentUserImageURI}
+                onSave={(newImageURI) => {
+                  this.updateUserImage(newImageURI);
+                  this.closeModal();
+                }}
+              />
             </Modal>
           </Fade>
         }

@@ -229,7 +229,7 @@ button:active {
     color: #fff;
 }
 
-.answer .answer-text textarea {
+.question-answer .answer-text textarea {
     width: 100%;
     border: 2px solid #ffe100;
     font-size: 18px;
@@ -265,6 +265,7 @@ button:active {
 
 .answers .answer {
     font-family: "Matcha Latte", sans-serif;
+    font-size: 24px;
     margin-left: 10px;
 }
 
@@ -312,7 +313,14 @@ button:active {
     font-size: 24px;
     color: #fff;
     font-family: "Impact", serif;
-    border-bottom: 1px solid #000;
+    margin-bottom: 10px;
+}
+.leaderboard .user-name {
+    border: 2px solid #000;
+    width: 150px;
+}
+.user-name img {
+    width: 150px;
 }
 .leaderboard .user .user-name h2 {
     font-family: "Matcha Latte", sans-serif;
@@ -340,4 +348,17 @@ button:active {
     width: 100%;
     height: 100%;
     border: 1px solid #fff;
+}
+
+.waiting-room .header {
+    font-size: 18px;
+    color: #ffe100;
+    text-align: center;
+    font-family: "Matcha Latte", sans-serif;
+}
+
+.waiting-room .header h2 {
+    font-family: "Impact", serif;
+    font-size: 24px;
+    color: #fff;
 }

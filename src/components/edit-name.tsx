@@ -14,12 +14,12 @@ interface EditNameState {
 export default class EditName extends Component<EditNameProps, EditNameState> {
   constructor(props: EditNameProps) {
     super(props);
-    this.state = {};
+    this.state = { newURI: props.currentImageURI };
   }
 
   onSave = () => {
-    const {onSave} = this.props;
-    const {newURI} = this.state;
+    const { onSave } = this.props;
+    const { newURI } = this.state;
     onSave(newURI);
   };
 

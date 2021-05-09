@@ -27,9 +27,7 @@ export default class Leaderboard extends Component<
           return (
             <div className="user">
               <span className="score">${score}</span>
-              <div className="user-name">
-                <UserName userId={userId} userImages={userImages} />
-              </div>
+              <UserName userId={userId} userImages={userImages} />
             </div>
           );
         })}
