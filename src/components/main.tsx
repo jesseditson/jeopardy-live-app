@@ -9,6 +9,7 @@ import { TopicData } from "../model/topic";
 import Modal from "./modal";
 import EditGamePrefs, { GamePreferences } from "./edit-game-prefs";
 import Leaderboard from "./leaderboard";
+import Answer from "./answer";
 
 interface MainProps {
     rootRecord: RootEntity;
@@ -24,7 +25,7 @@ interface MainState {
     showingQuestions: boolean;
 }
 
-type QuestionRow = ({q?: QuestionData, t: TopicData, add?: boolean})[]
+type QuestionRow = ({q?: QuestionData, t: TopicData, add?: boolean, ref?: React.Ref<HTMLDivElement>})[]
 
 const Fade: FunctionComponent<{in: boolean}> = (props) => 
     <CSSTransition
@@ -34,6 +35,15 @@ const Fade: FunctionComponent<{in: boolean}> = (props) =>
         classNames="fade"
         unmountOnExit
     >{props.children}</CSSTransition>
+
+const Zoom: FunctionComponent<{in: boolean, origin?: string}> = (props) => <CSSTransition
+    mountOnEnter={true}
+    in={props.in}
+    timeout={800}
+    classNames="zoom"
+    style={{transformOrigin: props.origin}}
+    unmountOnExit
+>{props.children}</CSSTransition>
 
 export default class Main extends Component<MainProps, MainState> {
     setupMenuActions_(rootRecord: RootEntity) {
@@ -56,6 +66,8 @@ export default class Main extends Component<MainProps, MainState> {
             addTopic("New Topic");
         }
     }
+
+    private questionElements: Map<string, React.RefObject<HTMLDivElement>> = new Map()
 
     constructor(props: MainProps) {
         super(props);
@@ -127,6 +139,18 @@ export default class Main extends Component<MainProps, MainState> {
         this.closeModal()
     }
 
+    private setCurrentQuestion = (questionId: string) => {
+        const {rootRecord} = this.props;
+        const {setCurrentQuestion} = rootRecord.getActions();
+        setCurrentQuestion(questionId)
+    }
+
+    private answerChanged = (answer: string) => {
+        const {rootRecord} = this.props;
+        const {onAnswer} = rootRecord.getActions();
+        onAnswer(answer)
+    }
+
     private closeModal = () => {
         this.setState({showingPreferences: false, showingLeaderboard: false})
     }
@@ -137,11 +161,14 @@ export default class Main extends Component<MainProps, MainState> {
         const {isOwner, isPlaying} = data;
         const questions: QuestionRow[] = []
         const maxQuestions: Map<number, number> = new Map()
+        this.questionElements = new Map()
         topics.forEach((topic, tnum) => {
             maxQuestions.set(tnum, 0)
             topic.questions.forEach((q, i) => {
                 questions[i] = questions[i] || []
-                questions[i][tnum] = {q, t: topic}
+                const ref = React.createRef<HTMLDivElement>()
+                this.questionElements.set(q.uuid, ref)
+                questions[i][tnum] = {q, t: topic, ref}
                 maxQuestions.set(tnum, Math.max(maxQuestions.get(tnum)!, i + 1))
             })
         })
@@ -153,6 +180,19 @@ export default class Main extends Component<MainProps, MainState> {
             }
         }
         return questions
+    }
+    
+    private originForQuestion = (questionId?: string): string | undefined => {
+        if (!questionId) {
+            return
+        }
+        const ref = this.questionElements.get(questionId)
+        // TODO: this is never set, proabaly racing.
+        if (ref && ref.current) {
+            const {x, y} = ref.current.getBoundingClientRect()
+            console.log(`${x}px ${y}px`)
+            return `${x}px ${y}px`
+        }
     }
 
     renderQuestions = (row: QuestionRow, rowIdx: number) => {
@@ -170,14 +210,16 @@ export default class Main extends Component<MainProps, MainState> {
                 </div>)
             } else if (isOwner) {
                 elements.push(!isPlaying
-                    ? <div className="question showing">
+                    ? <div className="question showing" ref={d.ref}>
                         <span>${baseValue + (rowIdx * valueIncrement)}</span>
                         <input onChange={(e) => this.changeQuestion(d.q!.uuid, e.target.value)} value={d.q!.question}/>
                         <a onClick={() => this.removeQuestion(d.t.uuid, d.q!.uuid)}>❌</a>
                     </div>
                     : <div className={classNames("question", {
                         "showing": showingQuestions
-                    })}>
+                        })}
+                        onClick={() => this.setCurrentQuestion(d.q!.uuid)}
+                        ref={d.ref}>
                         <h2>{showingQuestions ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}</h2>
                     </div>)
             } else {
@@ -185,7 +227,7 @@ export default class Main extends Component<MainProps, MainState> {
                 elements.push(
                     <div className={classNames("question", {
                         "finished": finished
-                    })}>
+                    })} ref={d.ref}>
                         <h2>
                             {finished ? d.q!.question : `$${baseValue + (rowIdx * valueIncrement)}`}
                         </h2>
@@ -198,7 +240,7 @@ export default class Main extends Component<MainProps, MainState> {
 
     render() {
         const {data, showingPreferences, showingLeaderboard} = this.state;
-        const {topics, isPlaying, isOwner, baseValue, valueIncrement, questionDuration} = data;
+        const {topics, isPlaying, isOwner, baseValue, valueIncrement, currentQuestion, questionDuration, questionStart} = data;
         const gridStyles = {
             gridTemplateColumns: topics.map(t => "1fr").join(" ")
         }
@@ -229,6 +271,14 @@ export default class Main extends Component<MainProps, MainState> {
                         <Leaderboard/>
                     </Modal>
                 </Fade>}
+                {<Zoom in={!!currentQuestion} origin={this.originForQuestion(currentQuestion?.uuid)}>
+                    <Answer
+                        isOwner={isOwner}
+                        questionDuration={questionDuration}
+                        questionStart={questionStart}
+                        currentQuestion={currentQuestion}
+                        answerChanged={this.answerChanged}/>
+                </Zoom>}
             </div>
         );
     }

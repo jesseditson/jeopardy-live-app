@@ -29,9 +29,6 @@ export class Question extends quip.apps.Record {
 
     addAnswer(userId: string, answer: string) {
         const answers = this.get("answers");
-        if (answers[userId]) {
-            throw new Error("Can't replace your answer.");
-        }
         answers[userId] = answer;
         this.set("answers", answers);
     }

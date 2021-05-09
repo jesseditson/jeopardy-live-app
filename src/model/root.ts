@@ -10,7 +10,7 @@ export interface AppData {
     baseValue: number,
     valueIncrement: number,
     questionDuration: number,
-    showingQuestion?: QuestionData,
+    currentQuestion?: QuestionData,
     questionStart?: number,
     finishedQuestions: Set<string>
 }
@@ -26,7 +26,7 @@ export class RootEntity extends quip.apps.RootRecord {
             baseValue: "number",
             questionDuration: "number",
             valueIncrement: "number",
-            showingQuestion: "object",
+            currentQuestion: "object",
             questionStart: "number",
             finishedQuestions: "array",
         };
@@ -54,6 +54,19 @@ export class RootEntity extends quip.apps.RootRecord {
     private topicsChanged = () => this.notifyListeners();
     private currentTopics: Set<Topic> = new Set();
 
+    private countdownInterval: number | undefined;
+    private startCountingDown = () => {
+        this.countdownInterval = window.setInterval(() => {
+            const start = this.get("questionStart");
+            const now = new Date().getTime();
+            const duration = this.get("questionDuration");
+            if (now - start > duration) {
+                this.set("currentQuestion", undefined);
+                window.clearInterval(this.countdownInterval)
+            }
+        }, 500);
+    }
+
     initialize() {
         const listenToTopics = () => {
             this.currentTopics.forEach(topic => {
@@ -70,6 +83,9 @@ export class RootEntity extends quip.apps.RootRecord {
             this.topicsChanged();
         })
         listenToTopics();
+        if (this.get("currentQuestion")) {
+            this.startCountingDown()
+        }
     }
 
     getData(): AppData {
@@ -83,7 +99,7 @@ export class RootEntity extends quip.apps.RootRecord {
             baseValue: this.get("baseValue"),
             questionDuration: this.get("questionDuration"),
             questionStart: this.get("questionStart"),
-            showingQuestion: this.get("showingQuestion"),
+            currentQuestion: this.get("currentQuestion"),
             topics,
             finishedQuestions: new Set(this.get("finishedQuestions"))
         };
@@ -91,8 +107,12 @@ export class RootEntity extends quip.apps.RootRecord {
 
     getActions() {
         return {
-            onAnswer: (questionId: string, answer: string) => {
-                const question = quip.apps.getRecordById(questionId) as Question;
+            onAnswer: (answer: string) => {
+                const currentQuestion = this.get("currentQuestion")
+                if (!currentQuestion) {
+                    return;
+                }
+                const question = quip.apps.getRecordById(currentQuestion.uuid) as Question;
                 const userId = quip.apps.getViewingUser()?.id();
                 if (!userId || !question) {
                     return;
@@ -143,10 +163,10 @@ export class RootEntity extends quip.apps.RootRecord {
                 this.set("valueIncrement", valueIncrement);
                 this.set("questionDuration", questionDuration);
             },
-            setShowingQuestion: (questionId?: string) => {
+            setCurrentQuestion: (questionId?: string) => {
                 this.set("questionStart", undefined);
                 if (!questionId) {
-                    this.set("showingQuestion", undefined);
+                    this.set("currentQuestion", undefined);
                     return;
                 }
                 const question = quip.apps.getRecordById(questionId) as Question;
@@ -157,7 +177,8 @@ export class RootEntity extends quip.apps.RootRecord {
                 finishedQuestions.push(questionId);
                 this.set("finishedQuestions", finishedQuestions);
                 this.set("questionStart", new Date().getTime());
-                this.set("showingQuestion", question.getData());
+                this.set("currentQuestion", question.getData());
+                this.startCountingDown();
             }
         };
     }
