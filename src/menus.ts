@@ -17,6 +17,7 @@ export interface MenuActions {
   togglePlayMode: () => void;
   toggleShowQuestions: () => void;
   toggleUserMode: () => void;
+  toggleEditName: () => void;
   addTopic: () => void;
   showPreferences: () => void;
 }
@@ -28,6 +29,7 @@ export const menuActions: MenuActions = {
   togglePlayMode: err("togglePlayMode"),
   toggleShowQuestions: err("toggleShowQuestions"),
   toggleUserMode: err("toggleUserMode"),
+  toggleEditName: err("toggleEditName"),
   addTopic: err("addTopic"),
   showPreferences: err("showPreferences"),
 };
@@ -39,7 +41,7 @@ export class Menu {
    * @param data
    */
   updateToolbar(data: AppData, state: MainState) {
-    const subCommands: string[] = this.getMainMenuSubCommandIds_(data);
+    const subCommands: string[] = this.getMainMenuSubCommandIds_(data, state);
     const commands = this.allCommands_.map((command) => {
       if (command.id === "toggle-play-mode") {
         command.label = data.isPlaying ? "Edit" : "Play";
@@ -121,6 +123,14 @@ export class Menu {
         return true;
       },
     },
+    {
+      id: "toggle-edit-name",
+      label: "Edit Name",
+      handler: () => {
+        menuActions.toggleEditName();
+        return true;
+      },
+    },
   ];
 
   private getToolbarCommandIds_(data: AppData, state: MainState): string[] {
@@ -129,6 +139,13 @@ export class Menu {
       ? ["toggle-play-mode", quip.apps.DocumentMenuCommands.SEPARATOR]
       : [];
     if (data.isPlaying) {
+      // TODO: this should only exist in the main dropdown, but that doesn't seem to be working.
+      if (!isOwner) {
+        toolbarCommandIds_.push(
+          "toggle-edit-name",
+          quip.apps.DocumentMenuCommands.SEPARATOR,
+        );
+      }
       toolbarCommandIds_.push("toggle-leaderboard");
       if (isOwner) {
         toolbarCommandIds_.push(
@@ -138,6 +155,7 @@ export class Menu {
           "toggle-user-mode"
         );
       } else if (data.isOwner) {
+        // implicitly in "user mode"
         toolbarCommandIds_.push(
           quip.apps.DocumentMenuCommands.SEPARATOR,
           "toggle-user-mode"
@@ -149,7 +167,7 @@ export class Menu {
         quip.apps.DocumentMenuCommands.SEPARATOR,
         "show-preferences",
         quip.apps.DocumentMenuCommands.SEPARATOR,
-        "toggle-user-mode",
+        "toggle-user-mode"
       );
     } else if (data.isOwner) {
       toolbarCommandIds_.push(
@@ -160,10 +178,13 @@ export class Menu {
     return toolbarCommandIds_;
   }
 
-  private getMainMenuSubCommandIds_(data: AppData): string[] {
+  private getMainMenuSubCommandIds_(data: AppData, state: MainState): string[] {
     const mainMenuSubCommandIds: string[] = [];
     if (data.isOwner) {
       mainMenuSubCommandIds.push("show-preferences");
+    }
+    if (state.userMode || !data.isOwner) {
+      mainMenuSubCommandIds.push("toggle-edit-name");
     }
     return mainMenuSubCommandIds;
   }
@@ -178,6 +199,9 @@ export class Menu {
     }
     if (state.showingLeaderboard) {
       highlightedCommandIds.push("toggle-leaderboard");
+    }
+    if (state.showingEditName) {
+      highlightedCommandIds.push("toggle-edit-name");
     }
     return highlightedCommandIds;
   }

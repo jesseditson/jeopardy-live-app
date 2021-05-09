@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import quip from "quip-apps-api";
+import UserName from "./user-name";
 
 interface LeaderboardProps {
   userScores: Map<string, number>;
+  userImages: Map<string, string>;
 }
 
 interface LeaderboardState {}
@@ -17,7 +19,7 @@ export default class Leaderboard extends Component<
   }
 
   render() {
-    const { userScores } = this.props;
+    const { userScores, userImages } = this.props;
     return (
       <div className="leaderboard">
         {Array.from(userScores.entries()).map(([userId, score]) => {
@@ -26,7 +28,7 @@ export default class Leaderboard extends Component<
             <div className="user">
               <span className="score">${score}</span>
               <div className="user-name">
-                <h2>{user ? user.getName() : userId}</h2>
+                <UserName userId={userId} userImages={userImages} />
               </div>
             </div>
           );

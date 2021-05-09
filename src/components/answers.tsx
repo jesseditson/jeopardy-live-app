@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import quip from "quip-apps-api";
 import { QuestionData } from "../model/question";
+import UserName from "./user-name";
 
 interface AnswersProps {
   currentQuestion?: QuestionData;
   toggleCorrect: (userId: string) => void;
   onFinished: () => void;
+  userImages: Map<string, string>;
 }
 
 interface AnswersState {}
@@ -17,7 +19,7 @@ export default class Answers extends Component<AnswersProps, AnswersState> {
   }
 
   render() {
-    const { currentQuestion, toggleCorrect, onFinished } = this.props;
+    const { currentQuestion, toggleCorrect, onFinished, userImages } = this.props;
     if (!currentQuestion) {
       return null;
     }
@@ -27,24 +29,21 @@ export default class Answers extends Component<AnswersProps, AnswersState> {
         <h2 className="question-text">{currentQuestion.question}</h2>
         <div className="user-answers">
           {Array.from(currentQuestion.answers.entries()).map(
-            ([userId, answer]) => {
-              const user = quip.apps.getUserById(userId);
-              return (
-                <div
-                  className="user-answer"
-                  key={userId}
-                  onClick={() => toggleCorrect(userId)}
-                >
-                  <div className="user-name">
-                    <h2>{user ? user.getName() : userId}</h2>
-                    <span>
-                      {currentQuestion.correctUserIds.has(userId) ? "🏆" : "❌"}
-                    </span>
-                  </div>
-                  <p className="answer">{answer}</p>
+            ([userId, answer]) => (
+              <div
+                className="user-answer"
+                key={userId}
+                onClick={() => toggleCorrect(userId)}
+              >
+                <div className="user-name">
+                  <UserName userId={userId} userImages={userImages}/>
+                  <span>
+                    {currentQuestion.correctUserIds.has(userId) ? "🏆" : "❌"}
+                  </span>
                 </div>
-              );
-            }
+                <p className="answer">{answer}</p>
+              </div>
+            )
           )}
         </div>
         <div className="footer">

@@ -12,6 +12,8 @@ import Leaderboard from "./leaderboard";
 import Answer from "./answer";
 import Answers from "./answers";
 import CorrectAnswers from "./correct-answers";
+import WaitingRoom from "./waiting-room";
+import EditName from "./edit-name";
 
 interface MainProps {
   rootRecord: RootEntity;
@@ -25,6 +27,7 @@ export interface MainState {
   showingLeaderboard: boolean;
   showingPreferences: boolean;
   showingQuestions: boolean;
+  showingEditName: boolean;
   userMode: boolean;
 }
 
@@ -91,6 +94,14 @@ export default class Main extends Component<MainProps, MainState> {
         }
       );
     };
+    menuActions.toggleEditName = () => {
+      this.setState(
+        ({ showingEditName }) => ({ showingEditName: !showingEditName }),
+        () => {
+          this.props.menu.updateToolbar(rootRecord.getData(), this.state);
+        }
+      );
+    };
     menuActions.togglePlayMode = () => {
       rootRecord.togglePlayMode();
     };
@@ -115,6 +126,7 @@ export default class Main extends Component<MainProps, MainState> {
       showingLeaderboard: false,
       showingPreferences: false,
       showingQuestions: false,
+      showingEditName: false,
       userMode: false,
     };
   }
@@ -193,6 +205,12 @@ export default class Main extends Component<MainProps, MainState> {
     onAnswer(answer);
   };
 
+  private updateUserImage = (imageURI: string) => {
+    const { rootRecord } = this.props;
+    const { updateUserImage } = rootRecord.getActions();
+    updateUserImage(imageURI);
+  };
+
   private toggleAnswerCorrect = (userId: string) => {
     const { rootRecord } = this.props;
     const { toggleAnswerCorrect } = rootRecord.getActions();
@@ -208,7 +226,7 @@ export default class Main extends Component<MainProps, MainState> {
   private closeModal = () => {
     const { rootRecord } = this.props;
     this.setState(
-      { showingPreferences: false, showingLeaderboard: false },
+      { showingPreferences: false, showingLeaderboard: false, showingEditName: false },
       () => {
         this.props.menu.updateToolbar(rootRecord.getData(), this.state);
       }
@@ -363,10 +381,12 @@ export default class Main extends Component<MainProps, MainState> {
       showingPreferences,
       showingLeaderboard,
       userMode,
+      showingEditName
     } = this.state;
     const {
       topics,
       isPlaying,
+      ownerId,
       baseValue,
       valueIncrement,
       currentQuestionId,
@@ -374,6 +394,7 @@ export default class Main extends Component<MainProps, MainState> {
       questionStart,
       showingCorrectAnswers,
       finishedQuestions,
+      userImages
     } = data;
     const isOwner = data.isOwner && !userMode;
     const gridStyles = {
@@ -382,6 +403,7 @@ export default class Main extends Component<MainProps, MainState> {
     const choosingCorrectAnswers = currentQuestionId
       ? isOwner && !finishedQuestions.has(currentQuestionId)
       : false;
+    const currentUserImageURI = userImages.get(quip.apps.getViewingUser()?.id() || "")
     const currentQuestion = this.getCurrentQuestion();
     return (
       <div className="root">
@@ -430,6 +452,7 @@ export default class Main extends Component<MainProps, MainState> {
             in={isPlaying && showingCorrectAnswers && choosingCorrectAnswers}
           >
             <Answers
+              userImages={userImages}
               currentQuestion={currentQuestion}
               toggleCorrect={this.toggleAnswerCorrect}
               onFinished={this.finishedMarkingAnswers}
@@ -440,7 +463,14 @@ export default class Main extends Component<MainProps, MainState> {
           <Fade
             in={isPlaying && showingCorrectAnswers && !choosingCorrectAnswers}
           >
-            <CorrectAnswers currentQuestion={currentQuestion} />
+            <CorrectAnswers userImages={userImages} currentQuestion={currentQuestion} />
+          </Fade>
+        }
+        {
+          <Fade
+            in={!isPlaying && !isOwner}
+          >
+            <WaitingRoom ownerId={ownerId} onUpdateImage={this.updateUserImage}/>
           </Fade>
         }
 
@@ -465,7 +495,18 @@ export default class Main extends Component<MainProps, MainState> {
               title="Leaderboard"
               onClose={this.closeModal}
             >
-              <Leaderboard userScores={this.getUserScores(topics)} />
+              <Leaderboard userImages={userImages} userScores={this.getUserScores(topics)} />
+            </Modal>
+          </Fade>
+        }
+        {
+          <Fade in={showingEditName}>
+            <Modal
+              showing={showingEditName}
+              title="Edit Name"
+              onClose={this.closeModal}
+            >
+              <EditName currentImageURI={currentUserImageURI} onSave={this.updateUserImage}/>
             </Modal>
           </Fade>
         }

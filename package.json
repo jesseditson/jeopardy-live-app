@@ -41,7 +41,8 @@
         "classnames": "^2.3.1",
         "quip-apps-api": "next",
         "quiptext": "next",
-        "react-transition-group": "^4.4.1"
+        "react-transition-group": "^4.4.1",
+        "simple-drawing-board": "^3.1.2"
     },
     "typescript": true,
     "bundler": "webpack"

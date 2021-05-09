@@ -5,6 +5,7 @@ import { Topic, TopicData } from "./topic";
 
 export interface AppData {
   isOwner: boolean;
+  ownerId: string;
   isPlaying: boolean;
   topics: TopicData[];
   baseValue: number;
@@ -14,6 +15,7 @@ export interface AppData {
   questionStart?: number;
   finishedQuestions: Set<string>;
   showingCorrectAnswers: boolean;
+  userImages: Map<string, string>;
 }
 
 export class RootEntity extends quip.apps.RootRecord {
@@ -31,6 +33,7 @@ export class RootEntity extends quip.apps.RootRecord {
       questionStart: "number",
       finishedQuestions: "array",
       showingCorrectAnswers: "boolean",
+      userImages: "object",
     };
   }
 
@@ -48,6 +51,7 @@ export class RootEntity extends quip.apps.RootRecord {
       isPlaying: false,
       finishedQuestions: [],
       showingCorrectAnswers: false,
+      userImages: {},
     };
   }
 
@@ -101,7 +105,13 @@ export class RootEntity extends quip.apps.RootRecord {
       .map((t) => t.getData());
     const viewingUser = quip.apps.getViewingUser();
     const isOwner = viewingUser?.id() === this.get("ownerId");
+    const userImages = new Map();
+    const userImagesObj = this.get("userImages") as {[key: string]: string}
+    for (const userId in userImagesObj) {
+      userImages.set(userId, userImagesObj[userId]);
+    }
     return {
+      ownerId: this.get("ownerId"),
       isOwner,
       isPlaying: this.get("isPlaying"),
       valueIncrement: this.get("valueIncrement"),
@@ -112,6 +122,7 @@ export class RootEntity extends quip.apps.RootRecord {
       topics,
       finishedQuestions: new Set(this.get("finishedQuestions")),
       showingCorrectAnswers: this.get("showingCorrectAnswers"),
+      userImages,
     };
   }
 
@@ -208,6 +219,14 @@ export class RootEntity extends quip.apps.RootRecord {
         finishedQuestions.push(currentQuestionId);
         this.set("finishedQuestions", finishedQuestions);
         this.set("currentQuestionId", undefined);
+      },
+      updateUserImage: (imageURI: string) => {
+        const userImages: {[id: string]: string} = this.get("userImages");
+        const userId = quip.apps.getViewingUser()?.id()
+        if (userId) {
+          userImages[userId] = imageURI
+          this.set("userImages", userImages);
+        }
       },
     };
   }
