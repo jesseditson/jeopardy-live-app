@@ -105,7 +105,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0;
+    min-height: 100%;
     right: 0;
     background-color: rgba(255, 255, 255, 0.6);
     display: flex;
@@ -200,7 +200,7 @@ button:active {
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0;
+    min-height: 100%;
     right: 0;
     display: flex;
     align-items: center;
@@ -259,7 +259,7 @@ button:active {
 }
 
 .user-answers {
-    display: grid;
+    display: flex;
     font-size: 1.5em;
 }
 
@@ -299,7 +299,7 @@ button:active {
 }
 
 .leaderboard {
-    display: grid;
+    display: flex;
     min-width: 600px;
 }
 
