@@ -51,8 +51,6 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
     }
   }
 
-  private ref = React.createRef<HTMLDivElement>();
-
   private updateAnswer = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { answerChanged } = this.props;
     const answer = event.target.value;
@@ -63,12 +61,8 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
   render() {
     const { currentQuestion, isOwner } = this.props;
     const { remainingSeconds, answer } = this.state;
-    let inputWidth = 0;
-    if (this.ref.current) {
-      inputWidth = this.ref.current?.getBoundingClientRect().width - 20;
-    }
     return (
-      <div className="question-answer" ref={this.ref}>
+      <div className="question-answer">
         <div className="countdown">
           {remainingSeconds} Second{remainingSeconds > 1 ? "s" : ""} Remaining
         </div>
@@ -76,7 +70,7 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
           <h2>{currentQuestion?.question}</h2>
         </div>
         {!isOwner ? (
-          <div className="answer-text" style={{ width: inputWidth }}>
+          <div className="answer-text">
             <textarea
               value={answer}
               placeholder="Enter Answer"

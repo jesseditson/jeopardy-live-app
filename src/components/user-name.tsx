@@ -24,7 +24,7 @@ export default class UserName extends Component<UserNameProps, UserNameState> {
     return (
       <div className="user-name">
         {userImage
-            ? <img src={userImage} alt={textName}/>
+            ? <img src={userImage} alt={textName} title={textName}/>
             : <h2>{textName}</h2>}
       </div>
     );

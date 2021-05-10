@@ -1,4 +1,5 @@
 import quip from "quip-apps-api";
+import {Answer} from "./answer";
 
 export interface QuestionData {
   uuid: string;
@@ -13,24 +14,54 @@ export class Question extends quip.apps.Record {
   static getProperties() {
     return {
       question: "string",
-      answers: "object",
+      answers: quip.apps.RecordList.Type(Answer),
       correctUserIds: "array",
     };
   }
 
   static getDefaultProperties(): { [property: string]: any } {
     return {
-      answers: {},
+      answers: [],
       correctUserIds: [],
     };
   }
 
+  private answersChanged = () => this.notifyListeners();
+  private currentAnswers: Set<Answer> = new Set();
+
+  initialize() {
+    const listenToAnswers = () => {
+      this.currentAnswers.forEach((answer) => {
+        answer.unlisten(this.answersChanged);
+      });
+      this.currentAnswers = new Set();
+      this.getAnswers()
+        .getRecords()
+        .forEach((answer) => {
+          this.currentAnswers.add(answer);
+          answer.listen(this.answersChanged);
+        });
+    };
+    this.getAnswers().listen(() => {
+      listenToAnswers();
+      this.answersChanged();
+    });
+    listenToAnswers();
+  }
+
+  private getAnswers = () => this.get("answers") as quip.apps.RecordList<Answer>
+
   setQuestion = (question: string) => this.set("question", question);
 
-  addAnswer(userId: string, answer: string) {
-    const answers = this.get("answers");
-    answers[userId] = answer;
-    this.set("answers", answers);
+  setAnswer(userId: string, answer: string) {
+    const answers = this.getAnswers().getRecords();
+    for (const record of answers) {
+      if (record.getData().userId === userId) {
+        record.updateAnswer(answer);
+        return;
+      }
+    }
+    this.getAnswers().add({userId, answer});
   }
 
   toggleCorrect(userId: string) {
@@ -45,10 +76,11 @@ export class Question extends quip.apps.Record {
   }
 
   getData(): QuestionData {
-    const answersObj = this.get("answers");
+    const answerRecords = this.getAnswers();
     let answers: Map<string, string> = new Map();
-    for (const answer in answersObj) {
-      answers.set(answer, answersObj[answer]);
+    for (const record of answerRecords.getRecords()) {
+      const {userId, answer} = record.getData();
+      answers.set(userId!, answer!);
     }
     const correctUserIds: Set<string> = new Set(this.get("correctUserIds"));
     return {

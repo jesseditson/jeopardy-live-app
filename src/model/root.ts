@@ -138,7 +138,7 @@ export class RootEntity extends quip.apps.RootRecord {
         if (!userId || !question) {
           return;
         }
-        question.addAnswer(userId, answer);
+        question.setAnswer(userId, answer);
       },
       addTopic: (name: string) => {
         this.getTopics().add({ name });

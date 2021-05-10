@@ -228,15 +228,20 @@ button:active {
 .question-answer .question h2 {
     color: #fff;
 }
-
+.question-answer .answer-text {
+    width: 100%;
+    display: flex;
+    flex-grow: 1;
+}
 .question-answer .answer-text textarea {
     width: 100%;
     border: 2px solid #ffe100;
-    font-size: 18px;
+    font-size: 24px;
     padding: 20px;
     color: #ffe100;
     border-radius: 0;
     outline: none;
+    font-family: "Matcha Latte", sans-serif;
 }
 
 .question-text {
