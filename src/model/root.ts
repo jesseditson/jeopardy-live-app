@@ -59,7 +59,7 @@ export class RootEntity extends quip.apps.RootRecord {
 
   getTopics = () => this.get("topics") as quip.apps.RecordList<Topic>;
   togglePlayMode = () => this.set("isPlaying", !this.get("isPlaying"));
-  getUserNameImages = () => this.get("getUserNameImages") as quip.apps.RecordList<UserImage>
+  getUserNameImages = () => this.get("userNameImages") as quip.apps.RecordList<UserImage>
 
   private topicsChanged = () => this.notifyListeners();
   private userImagesChanged = () => this.notifyListeners();

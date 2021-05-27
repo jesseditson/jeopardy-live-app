@@ -28,7 +28,7 @@ export default class CorrectAnswers extends Component<
       <div className="answers">
         <h1 className="header">Answers!</h1>
         <h2 className="question-text">{currentQuestion.question}</h2>
-        <h2 className="correct-answers-title">🏆 Correct 🏆</h2>
+        {currentQuestion.answers.size > 0 ? <h2 className="correct-answers-title">🏆 Correct Answers 🏆</h2> : null}
         <div className="correct-answers">
           {Array.from(currentQuestion.answers.entries())
             .filter(([userId]) => currentQuestion.correctUserIds.has(userId))
