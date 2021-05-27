@@ -482,6 +482,7 @@ export default class Main extends Component<MainProps, MainState> {
           <Fade in={!isPlaying && !isOwner}>
             <WaitingRoom
               ownerId={ownerId}
+              currentImageURI={currentUserImageURI}
               onUpdateImage={this.updateUserImage}
             />
           </Fade>

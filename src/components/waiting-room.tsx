@@ -4,6 +4,7 @@ import DrawName from "./draw-name";
 
 interface WaitingRoomProps {
   ownerId: string;
+  currentImageURI?: string;
   onUpdateImage: (imageURI: string) => void;
 }
 
@@ -19,7 +20,7 @@ export default class WaitingRoom extends Component<
   }
 
   render() {
-    const { ownerId, onUpdateImage } = this.props;
+    const { ownerId, onUpdateImage, currentImageURI } = this.props;
     const owner = quip.apps.getUserById(ownerId);
     const ownerName = owner ? owner.getFirstName() : "The Host";
     return (
@@ -28,7 +29,10 @@ export default class WaitingRoom extends Component<
           <h2>Waiting for {ownerName} to start the game.</h2>
           <p>Draw your name below while you wait.</p>
         </div>
-        <DrawName onSave={(uri) => onUpdateImage(uri)} />
+        <DrawName
+          currentImageURI={currentImageURI}
+          onSave={(uri) => onUpdateImage(uri)}
+        />
       </div>
     );
   }
