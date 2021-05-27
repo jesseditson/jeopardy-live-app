@@ -44,7 +44,7 @@ const Fade: FunctionComponent<{ in: boolean }> = (props) => (
     in={props.in}
     timeout={300}
     classNames="fade"
-    unmountOnExit
+    unmountOnExit={true}
   >
     {props.children}
   </CSSTransition>
@@ -57,7 +57,7 @@ const Zoom: FunctionComponent<{ in: boolean; origin?: string }> = (props) => (
     timeout={800}
     classNames="zoom"
     style={{ transformOrigin: props.origin }}
-    unmountOnExit
+    unmountOnExit={true}
   >
     {props.children}
   </CSSTransition>
@@ -221,6 +221,16 @@ export default class Main extends Component<MainProps, MainState> {
     const { rootRecord } = this.props;
     const { finishMarkingAnswers } = rootRecord.getActions();
     finishMarkingAnswers();
+  };
+  private addMoreTime = () => {
+    const { rootRecord } = this.props;
+    const { addMoreTime } = rootRecord.getActions();
+    addMoreTime();
+  };
+  private skipToAnswers = () => {
+    const { rootRecord } = this.props;
+    const { skipToAnswers } = rootRecord.getActions();
+    skipToAnswers();
   };
 
   private closeModal = () => {
@@ -453,6 +463,8 @@ export default class Main extends Component<MainProps, MainState> {
               questionStart={questionStart}
               currentQuestion={currentQuestion}
               answerChanged={this.answerChanged}
+              addMoreTime={this.addMoreTime}
+              skipToAnswers={this.skipToAnswers}
             />
           </Zoom>
         }
@@ -461,7 +473,7 @@ export default class Main extends Component<MainProps, MainState> {
             in={isPlaying && showingCorrectAnswers && choosingCorrectAnswers}
           >
             <Modal
-              showing={true}
+              showing={isPlaying && showingCorrectAnswers && choosingCorrectAnswers}
             >
               <Answers
                 userImages={userImages}
@@ -477,7 +489,7 @@ export default class Main extends Component<MainProps, MainState> {
             in={isPlaying && showingCorrectAnswers && !choosingCorrectAnswers}
           >
             <Modal
-              showing={true}
+              showing={isPlaying && showingCorrectAnswers && !choosingCorrectAnswers}
             >
               <CorrectAnswers
                 userImages={userImages}
@@ -495,7 +507,6 @@ export default class Main extends Component<MainProps, MainState> {
             />
           </Fade>
         }
-
         {
           <Fade in={showingPreferences}>
             <Modal

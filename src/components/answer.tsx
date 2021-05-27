@@ -8,6 +8,8 @@ interface AnswerProps {
   questionStart?: number;
   currentQuestion?: QuestionData;
   answerChanged: (answer: string) => void;
+  addMoreTime: () => void;
+  skipToAnswers: () => void;
 }
 
 interface AnswerState {
@@ -36,7 +38,7 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
       const { questionStart, questionDuration } = this.props;
       const now = new Date().getTime();
       const msRemaining = questionDuration - (now - (questionStart || 0));
-      const remainingSeconds = Math.ceil(msRemaining / 1000);
+      const remainingSeconds = Math.max(Math.ceil(msRemaining / 1000), 0);
       this.setState({ remainingSeconds });
     }, 500);
   };
@@ -59,12 +61,15 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
   };
 
   render() {
-    const { currentQuestion, isOwner } = this.props;
+    const { currentQuestion, isOwner, addMoreTime, skipToAnswers } = this.props;
     const { remainingSeconds, answer } = this.state;
     return (
       <div className="question-answer">
+        {remainingSeconds === 0 ? (
+          <h2 className="times-up">Time's Up!</h2>
+        ) : null}
         <div className="countdown">
-          {remainingSeconds} Second{remainingSeconds > 1 ? "s" : ""} Remaining
+          {remainingSeconds} Second{remainingSeconds === 1 ? "" : "s"} Remaining
         </div>
         <div className="question finished">
           <h2>{currentQuestion?.question}</h2>
@@ -73,11 +78,24 @@ export default class Answer extends Component<AnswerProps, AnswerState> {
           <div className="answer-text">
             <textarea
               value={answer}
+              disabled={remainingSeconds === 0}
               placeholder="Enter Answer"
               onChange={this.updateAnswer}
             />
           </div>
-        ) : null}
+        ) : (
+          <div className="answer-text">
+            <h2>Users are choosing their answers...</h2>
+            <div className="controls">
+              <button type="submit" onClick={() => addMoreTime()}>
+                Reset Timer
+              </button>
+              <button type="submit" onClick={() => skipToAnswers()}>
+                {remainingSeconds > 0 ? "End Early" : "Choose Correct Answers"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

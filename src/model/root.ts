@@ -75,8 +75,6 @@ export class RootEntity extends quip.apps.RootRecord {
       const now = new Date().getTime();
       const duration = this.get("questionDuration");
       if (now - start > duration) {
-        // When complete, show the correct answers to everyone
-        this.set("showingCorrectAnswers", true);
         window.clearInterval(this.countdownInterval);
       }
     }, 500);
@@ -226,6 +224,21 @@ export class RootEntity extends quip.apps.RootRecord {
         this.set("currentQuestionId", question.id());
         this.startCountingDown();
       },
+      addMoreTime: () => {
+        const currentQuestionId = this.get("currentQuestionId");
+        if (!currentQuestionId) {
+          return;
+        }
+        this.set("questionStart", new Date().getTime());
+        this.startCountingDown();
+      },
+      skipToAnswers: () => {
+        const currentQuestionId = this.get("currentQuestionId");
+        if (!currentQuestionId) {
+          return;
+        }
+        this.set("showingCorrectAnswers", true);
+      },
       toggleAnswerCorrect: (userId: string) => {
         const currentQuestionId = this.get("currentQuestionId");
         if (!currentQuestionId) {
@@ -236,7 +249,6 @@ export class RootEntity extends quip.apps.RootRecord {
           return;
         }
         question.toggleCorrect(userId);
-        // this.set("currentQuestionId", question.id());
       },
       finishMarkingAnswers: () => {
         const currentQuestionId = this.get("currentQuestionId");
@@ -247,6 +259,7 @@ export class RootEntity extends quip.apps.RootRecord {
         finishedQuestions.push(currentQuestionId);
         this.set("finishedQuestions", finishedQuestions);
         this.set("currentQuestionId", undefined);
+        this.set("showingCorrectAnswers", false)
       },
       updateUserImage: (imageURI?: string) => {
         const userId = quip.apps.getViewingUser()?.id();

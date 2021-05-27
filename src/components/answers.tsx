@@ -49,7 +49,7 @@ export default class Answers extends Component<AnswersProps, AnswersState> {
         </div>
         <div className="footer">
           <button type="submit" onClick={() => onFinished()}>
-            Done
+            Next Question
           </button>
         </div>
       </div>
