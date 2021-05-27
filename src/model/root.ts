@@ -53,13 +53,14 @@ export class RootEntity extends quip.apps.RootRecord {
       isPlaying: false,
       finishedQuestions: [],
       showingCorrectAnswers: false,
-      userNameImages: []
+      userNameImages: [],
     };
   }
 
   getTopics = () => this.get("topics") as quip.apps.RecordList<Topic>;
   togglePlayMode = () => this.set("isPlaying", !this.get("isPlaying"));
-  getUserNameImages = () => this.get("userNameImages") as quip.apps.RecordList<UserImage>
+  getUserNameImages = () =>
+    this.get("userNameImages") as quip.apps.RecordList<UserImage>;
 
   private topicsChanged = () => this.notifyListeners();
   private userImagesChanged = () => this.notifyListeners();
@@ -133,10 +134,10 @@ export class RootEntity extends quip.apps.RootRecord {
     const userImages = new Map();
     const records = this.getUserNameImages().getRecords();
     for (const record of records) {
-      const {userId, imageURI} = record.getData()
+      const { userId, imageURI } = record.getData();
       userImages.set(userId, imageURI);
     }
-    
+
     return {
       ownerId: this.get("ownerId"),
       isOwner,
@@ -252,7 +253,7 @@ export class RootEntity extends quip.apps.RootRecord {
         const recordList = this.getUserNameImages();
         const records = recordList.getRecords();
         for (const record of records) {
-          const {userId: uid} = record.getData()
+          const { userId: uid } = record.getData();
           if (uid === userId) {
             if (!imageURI) {
               recordList.remove(record);
@@ -264,7 +265,7 @@ export class RootEntity extends quip.apps.RootRecord {
         }
         // If we don't find the user in the list, append a record
         // (we can't get here if the above loop encounters the user)
-        recordList.add({userId, imageURI});
+        recordList.add({ userId, imageURI });
       },
     };
   }
