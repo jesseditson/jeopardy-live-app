@@ -3,9 +3,9 @@ import quip from "quip-apps-api";
 import { CSSTransition } from "react-transition-group";
 
 interface ModalProps {
-  title: string;
+  title?: string;
   showing: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 interface ModalState {}
@@ -38,12 +38,14 @@ export default class Modal extends Component<ModalProps, ModalState> {
           onExited={this.onExit}
         >
           <div className="content" ref={this.node}>
-            <div className="modal-header">
-              <h2>{title}</h2>
-              <span onClick={onClose} className="close">
-                close
-              </span>
-            </div>
+            {title ? (
+              <div className="modal-header">
+                <h2>{title}</h2>
+                <span onClick={onClose} className="close">
+                  close
+                </span>
+              </div>
+            ) : null}
             {this.props.children}
           </div>
         </CSSTransition>

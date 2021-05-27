@@ -23,19 +23,20 @@ export default class Answers extends Component<AnswersProps, AnswersState> {
     if (!currentQuestion) {
       return null;
     }
+    const answers = Array.from(currentQuestion.answers.entries())
     return (
       <div className="answers">
-        <h1 className="header">Answers!</h1>
+        <h1 className="header">Choose Correct Answers!</h1>
         <h2 className="question-text">{currentQuestion.question}</h2>
         <div className="user-answers">
-          {Array.from(currentQuestion.answers.entries()).map(
+          {answers.map(
             ([userId, answer]) => (
               <div
                 className="user-answer"
                 key={userId}
                 onClick={() => toggleCorrect(userId)}
               >
-                <div className="user-name">
+                <div className="user-answer-header">
                   <UserName userId={userId} userImages={userImages}/>
                   <span>
                     {currentQuestion.correctUserIds.has(userId) ? "🏆" : "❌"}

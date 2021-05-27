@@ -460,22 +460,30 @@ export default class Main extends Component<MainProps, MainState> {
           <Fade
             in={isPlaying && showingCorrectAnswers && choosingCorrectAnswers}
           >
-            <Answers
-              userImages={userImages}
-              currentQuestion={currentQuestion}
-              toggleCorrect={this.toggleAnswerCorrect}
-              onFinished={this.finishedMarkingAnswers}
-            />
+            <Modal
+              showing={true}
+            >
+              <Answers
+                userImages={userImages}
+                currentQuestion={currentQuestion}
+                toggleCorrect={this.toggleAnswerCorrect}
+                onFinished={this.finishedMarkingAnswers}
+              />
+            </Modal>
           </Fade>
         }
         {
           <Fade
             in={isPlaying && showingCorrectAnswers && !choosingCorrectAnswers}
           >
-            <CorrectAnswers
-              userImages={userImages}
-              currentQuestion={currentQuestion}
-            />
+            <Modal
+              showing={true}
+            >
+              <CorrectAnswers
+                userImages={userImages}
+                currentQuestion={currentQuestion}
+              />
+            </Modal>
           </Fade>
         }
         {
