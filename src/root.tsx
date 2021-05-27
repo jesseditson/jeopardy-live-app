@@ -7,11 +7,13 @@ import { RootEntity } from "./model/root";
 import { Topic } from "./model/topic";
 import { Question } from "./model/question";
 import { Answer } from "./model/answer";
+import { UserImage } from "./model/user-image";
 
 quip.apps.registerClass(RootEntity, RootEntity.ID);
 quip.apps.registerClass(Topic, Topic.ID);
 quip.apps.registerClass(Question, Question.ID);
 quip.apps.registerClass(Answer, Answer.ID);
+quip.apps.registerClass(UserImage, UserImage.ID);
 
 const menu = new Menu();
 

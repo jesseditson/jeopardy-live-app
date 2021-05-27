@@ -1,7 +1,9 @@
 import quip from "quip-apps-api";
+import RecordList from "quip-apps-api/dist/record-list";
 import { GamePreferences } from "../components/edit-game-prefs";
 import { Question, QuestionData } from "./question";
 import { Topic, TopicData } from "./topic";
+import { UserImage } from "./user-image";
 
 export interface AppData {
   isOwner: boolean;
@@ -33,7 +35,7 @@ export class RootEntity extends quip.apps.RootRecord {
       questionStart: "number",
       finishedQuestions: "array",
       showingCorrectAnswers: "boolean",
-      userImages: "object",
+      userNameImages: quip.apps.RecordList.Type(UserImage),
     };
   }
 
@@ -51,15 +53,18 @@ export class RootEntity extends quip.apps.RootRecord {
       isPlaying: false,
       finishedQuestions: [],
       showingCorrectAnswers: false,
-      userImages: {},
+      userNameImages: []
     };
   }
 
   getTopics = () => this.get("topics") as quip.apps.RecordList<Topic>;
   togglePlayMode = () => this.set("isPlaying", !this.get("isPlaying"));
+  getUserNameImages = () => this.get("getUserNameImages") as quip.apps.RecordList<UserImage>
 
   private topicsChanged = () => this.notifyListeners();
+  private userImagesChanged = () => this.notifyListeners();
   private currentTopics: Set<Topic> = new Set();
+  private currentUserImages: Set<UserImage> = new Set();
 
   private countdownInterval: number | undefined;
   private startCountingDown = () => {
@@ -77,6 +82,7 @@ export class RootEntity extends quip.apps.RootRecord {
   };
 
   initialize() {
+    // Add listeners for topics
     const listenToTopics = () => {
       this.currentTopics.forEach((topic) => {
         topic.unlisten(this.topicsChanged);
@@ -94,6 +100,25 @@ export class RootEntity extends quip.apps.RootRecord {
       this.topicsChanged();
     });
     listenToTopics();
+    // Add listeners for users
+    const listenToUserImages = () => {
+      this.currentUserImages.forEach((image) => {
+        image.unlisten(this.userImagesChanged);
+      });
+      this.currentUserImages = new Set();
+      this.getUserNameImages()
+        .getRecords()
+        .forEach((image) => {
+          this.currentUserImages.add(image);
+          image.listen(this.userImagesChanged);
+        });
+    };
+    this.getTopics().listen(() => {
+      listenToUserImages();
+      this.userImagesChanged();
+    });
+    listenToUserImages();
+    // Set up timers
     if (this.get("currentQuestionId")) {
       this.startCountingDown();
     }
@@ -106,10 +131,12 @@ export class RootEntity extends quip.apps.RootRecord {
     const viewingUser = quip.apps.getViewingUser();
     const isOwner = viewingUser?.id() === this.get("ownerId");
     const userImages = new Map();
-    const userImagesObj = this.get("userImages") as { [key: string]: string };
-    for (const userId in userImagesObj) {
-      userImages.set(userId, userImagesObj[userId]);
+    const records = this.getUserNameImages().getRecords();
+    for (const record of records) {
+      const {userId, imageURI} = record.getData()
+      userImages.set(userId, imageURI);
     }
+    
     return {
       ownerId: this.get("ownerId"),
       isOwner,
@@ -221,16 +248,23 @@ export class RootEntity extends quip.apps.RootRecord {
         this.set("currentQuestionId", undefined);
       },
       updateUserImage: (imageURI?: string) => {
-        const userImages: { [id: string]: string } = this.get("userImages");
         const userId = quip.apps.getViewingUser()?.id();
-        if (userId) {
-          if (!imageURI) {
-            delete userImages[userId];
-          } else {
-            userImages[userId] = imageURI;
+        const recordList = this.getUserNameImages();
+        const records = recordList.getRecords();
+        for (const record of records) {
+          const {userId: uid} = record.getData()
+          if (uid === userId) {
+            if (!imageURI) {
+              recordList.remove(record);
+            } else {
+              record.updateImageURI(imageURI);
+            }
+            return;
           }
-          this.set("userImages", userImages);
         }
+        // If we don't find the user in the list, append a record
+        // (we can't get here if the above loop encounters the user)
+        recordList.add({userId, imageURI});
       },
     };
   }
